@@ -1,0 +1,111 @@
+.mountain-card {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+  }
+  
+  .mountain-card-image-container {
+    position: relative;
+    height: 200px;
+    overflow: hidden;
+  }
+  
+  .mountain-card-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+  }
+  
+  .mountain-card:hover .mountain-card-image {
+    transform: scale(1.05);
+  }
+  
+  .mountain-card-difficulty {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+  }
+  
+  .difficulty-badge {
+    padding: 5px 10px;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    color: white;
+  }
+  
+  .difficulty-easy {
+    background-color: #2ecc71;
+  }
+  
+  .difficulty-moderate {
+    background-color: #f39c12;
+  }
+  
+  .difficulty-hard {
+    background-color: #e74c3c;
+  }
+  
+  .difficulty-extreme {
+    background-color: #8e44ad;
+  }
+  
+  .mountain-card-content {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    padding: 15px;
+  }
+  
+  .mountain-card-title {
+    margin: 0 0 5px;
+    font-size: 1.25rem;
+    color: #2c3e50;
+  }
+  
+  .mountain-card-location {
+    margin: 0 0 10px;
+    font-size: 0.875rem;
+    color: #7f8c8d;
+  }
+  
+  .mountain-card-elevation {
+    margin: 0 0 10px;
+    font-size: 0.875rem;
+    color: #34495e;
+    font-weight: 500;
+  }
+  
+  .mountain-card-description {
+    margin: 0 0 15px;
+    font-size: 0.875rem;
+    color: #34495e;
+    flex-grow: 1;
+  }
+  
+  .mountain-card-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: auto;
+  }
+  
+  .mountain-card-price {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .price-amount {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #2c3e50;
+  }
+  
+  .price-text {
+    font-size: 0.75rem;
+    color: #7f8c8d;
+  }
+  
+  

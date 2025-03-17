@@ -1,0 +1,7 @@
+{
+    "mountains": [
+      { "id": 1, "name": "Gunung Rinjani", "status": "safe" },
+      { "id": 2, "name": "Gunung Semeru", "status": "dangerous" }
+    ]
+  }
+  

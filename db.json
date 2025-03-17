@@ -1,7 +1,22 @@
 {
-    "mountains": [
-      { "id": 1, "name": "Gunung Rinjani", "status": "safe" },
-      { "id": 2, "name": "Gunung Semeru", "status": "dangerous" }
-    ]
-  }
-  
+  "users": [
+    {
+      "id": 1,
+      "username": "admin",
+      "email": "admin@example.com",
+      "password": "$2b$10$U7E0/YBgZifgveX9XARQk.yDs/hXNYF8tNge4C7rAaC7TxkifBQoO"
+    },
+    {
+      "id": "80bb",
+      "username": "admin123",
+      "email": "admin123@gmail.com",
+      "password": "$2b$10$S9VeOETQdWAFtzvzULolNe9Q.MFxXj2.YTrvlvwe4SreFbiFjvKA6"
+    },
+    {
+      "id": "daef",
+      "username": "windi",
+      "email": "saputra@gmail.com",
+      "password": "$2b$10$/eqsWc785oynxhdJZxHg4O4iBML9aacM8an7SXDGqsVX.5QSLsu.."
+    }
+  ]
+}

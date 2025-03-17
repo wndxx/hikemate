@@ -3,6 +3,7 @@ import Layout from "../components/layout/Layout";
 import Form from "../components/form/Form";
 import Button from "../components/button/Button";
 import { Link } from "react-router-dom";
+import { loginUser } from "../api/auth";
 
 const Login = () => {
   // Update the formData state to include username
@@ -49,11 +50,17 @@ const Login = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e) => {
-    if (validateForm()) {
-      // In a real app, this would call an API to authenticate the user
-      console.log("Form submitted:", formData);
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    const result = await loginUser(formData.username, formData.password);
+
+    if (result.success) {
       alert("Login successful!");
+      localStorage.setItem("user", JSON.stringify(result.user));
+      window.location.href = "/"; // Redirect setelah login
+    } else {
+      alert(result.message);
     }
   };
 

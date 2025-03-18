@@ -6,6 +6,9 @@ import RangersTable from "./RangersTable";
 import TransactionsTable from "./TransactionsTable";
 import MonthlyChart from "./MonthlyChart";
 
+
+// json-server --watch db.json --port 5000
+
 const Dashboard = () => {
   const [data, setData] = useState({ users: [], rangers: [], mountains: [], transactions: [] });
   const [activeTable, setActiveTable] = useState("home");

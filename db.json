@@ -27,7 +27,7 @@
   ],
   "mountains": [
     {
-      "id": "m1",
+      "id": "1",
       "name": "Gunung Merapi",
       "location": "Yogyakarta",
       "description": "Gunung api aktif dengan pemandangan indah.",
@@ -36,7 +36,7 @@
       "created_at": "2025-03-17T10:00:00Z"
     },
     {
-      "id": "m2",
+      "id": "2",
       "name": "Gunung Semeru",
       "location": "Jawa Timur",
       "description": "Gunung tertinggi di Pulau Jawa.",
@@ -145,7 +145,7 @@
   ],
   "transaction_details": [
     {
-      "id": "td1",
+      "id": "1",
       "transaction_id": "t1",
       "mountain_id": "m1",
       "quantity": 2,
@@ -156,7 +156,7 @@
   ],
   "rangers": [
     {
-      "id": "r1",
+      "id": "1",
       "mountain_id": "m1",
       "name": "Budi Ranger",
       "contact_info": "08123456789",

@@ -1,22 +1,166 @@
 {
   "users": [
     {
-      "id": 1,
+      "id": "1",
       "username": "admin",
       "email": "admin@example.com",
       "password": "$2b$10$U7E0/YBgZifgveX9XARQk.yDs/hXNYF8tNge4C7rAaC7TxkifBQoO"
     },
     {
-      "id": "80bb",
+      "id": "2",
       "username": "admin123",
       "email": "admin123@gmail.com",
       "password": "$2b$10$S9VeOETQdWAFtzvzULolNe9Q.MFxXj2.YTrvlvwe4SreFbiFjvKA6"
     },
     {
-      "id": "daef",
+      "id": "3",
       "username": "windi",
       "email": "saputra@gmail.com",
       "password": "$2b$10$/eqsWc785oynxhdJZxHg4O4iBML9aacM8an7SXDGqsVX.5QSLsu.."
+    },
+    {
+      "id": "4",
+      "username": "david",
+      "email": "david@gmail.com",
+      "password": "$2b$10$ucvwIAV63u4/WMb5R.WWwOSXtGicvrWIf7fRrwKXjFMdZsg9UBTFa"
+    }
+  ],
+  "mountains": [
+    {
+      "id": "m1",
+      "name": "Gunung Merapi",
+      "location": "Yogyakarta",
+      "description": "Gunung api aktif dengan pemandangan indah.",
+      "status": "active",
+      "price": 50000,
+      "created_at": "2025-03-17T10:00:00Z"
+    },
+    {
+      "id": "m2",
+      "name": "Gunung Semeru",
+      "location": "Jawa Timur",
+      "description": "Gunung tertinggi di Pulau Jawa.",
+      "status": "active",
+      "price": 60000,
+      "created_at": "2025-03-17T10:10:00Z"
+    }
+  ],
+  "transactions": [
+    {
+      "id": "1",
+      "hiker_id": "daef",
+      "total_amount": 100000,
+      "transaction_date": "2025-03-17T11:00:00Z",
+      "status": "completed",
+      "created_at": "2025-03-17T11:00:00Z"
+    },
+    {
+      "id": "2",
+      "hiker_id": "daef",
+      "total_amount": 100000,
+      "transaction_date": "2025-03-17T11:00:00Z",
+      "status": "pending",
+      "created_at": "2025-03-17T11:00:00Z"
+    },
+    {
+      "id": "3",
+      "hiker_id": "daef",
+      "total_amount": 100000,
+      "transaction_date": "2025-03-17T11:00:00Z",
+      "status": "completed",
+      "created_at": "2025-03-17T11:00:00Z"
+    },
+    {
+      "id": "4",
+      "hiker_id": "daef",
+      "total_amount": 100000,
+      "transaction_date": "2025-03-17T11:00:00Z",
+      "status": "completed",
+      "created_at": "2025-03-17T11:00:00Z"
+    },
+    {
+      "id": "5",
+      "hiker_id": "daef",
+      "total_amount": 100000,
+      "transaction_date": "2025-03-17T11:00:00Z",
+      "status": "completed",
+      "created_at": "2025-03-17T11:00:00Z"
+    },
+    {
+      "id": "6",
+      "hiker_id": "daef",
+      "total_amount": 100000,
+      "transaction_date": "2025-03-17T11:00:00Z",
+      "status": "completed",
+      "created_at": "2025-03-17T11:00:00Z"
+    },
+    {
+      "id": "7",
+      "hiker_id": "daef",
+      "total_amount": 100000,
+      "transaction_date": "2025-03-17T11:00:00Z",
+      "status": "completed",
+      "created_at": "2025-03-17T11:00:00Z"
+    },
+    {
+      "id": "8",
+      "hiker_id": "daef",
+      "total_amount": 100000,
+      "transaction_date": "2025-03-17T11:00:00Z",
+      "status": "completed",
+      "created_at": "2025-03-17T11:00:00Z"
+    },
+    {
+      "id": "9",
+      "hiker_id": "daef",
+      "total_amount": 100000,
+      "transaction_date": "2025-03-17T11:00:00Z",
+      "status": "completed",
+      "created_at": "2025-03-17T11:00:00Z"
+    },
+    {
+      "id": "10",
+      "hiker_id": "daef",
+      "total_amount": 100000,
+      "transaction_date": "2025-03-17T11:00:00Z",
+      "status": "completed",
+      "created_at": "2025-03-17T11:00:00Z"
+    },
+    {
+      "id": "11",
+      "hiker_id": "daef",
+      "total_amount": 100000,
+      "transaction_date": "2025-03-17T11:00:00Z",
+      "status": "completed",
+      "created_at": "2025-03-17T11:00:00Z"
+    },
+    {
+      "id": "12",
+      "hiker_id": "daef",
+      "total_amount": 100000,
+      "transaction_date": "2025-03-17T11:00:00Z",
+      "status": "completed",
+      "created_at": "2025-03-17T11:00:00Z"
+    }
+  ],
+  "transaction_details": [
+    {
+      "id": "td1",
+      "transaction_id": "t1",
+      "mountain_id": "m1",
+      "quantity": 2,
+      "price": 50000,
+      "subtotal": 100000,
+      "created_at": "2025-03-17T11:05:00Z"
+    }
+  ],
+  "rangers": [
+    {
+      "id": "r1",
+      "mountain_id": "m1",
+      "name": "Budi Ranger",
+      "contact_info": "08123456789",
+      "assigned_at": "2025-03-17T12:00:00Z"
     }
   ]
 }

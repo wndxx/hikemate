@@ -69,6 +69,7 @@ const mountainsData = [
     difficulty: "Hard",
     price: 8000,
     description: "The highest mountain peak in North America, located in Alaska's Denali National Park.",
+    status: true
   },
 ]
 

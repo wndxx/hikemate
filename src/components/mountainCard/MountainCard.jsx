@@ -1,7 +1,7 @@
-import Button from "../button/Button"
+import Button from "../button/Button";
 
 const MountainCard = ({ mountain, onBookClick }) => {
-  const { id, name, image, location, elevation, difficulty, price, description } = mountain
+  const { id, name, image, location, elevation, difficulty, price, description } = mountain;
 
   // Map difficulty to Bootstrap color classes
   const difficultyColorMap = {
@@ -9,17 +9,38 @@ const MountainCard = ({ mountain, onBookClick }) => {
     moderate: "warning",
     hard: "danger",
     extreme: "dark",
-  }
+  };
 
-  const difficultyColor = difficultyColorMap[difficulty.toLowerCase()] || "secondary"
+  const difficultyColor = difficultyColorMap[difficulty.toLowerCase()] || "secondary";
 
   // Handler for booking
   const handleBooking = (e) => {
     // Prevent event bubbling if clicked on button
-    if (e.target.tagName === "BUTTON") return
+    if (e.target.tagName === "BUTTON") return;
 
-    onBookClick(id)
-  }
+    onBookClick(id);
+  };
+
+  // Handler for image error
+  const handleImageError = (e) => {
+    // Ganti gambar dengan div yang menampilkan "No Image Available"
+    const imageContainer = e.target.parentElement;
+    imageContainer.innerHTML = `
+      <div 
+        style="
+          height: 200px; 
+          display: flex; 
+          align-items: center; 
+          justify-content: center; 
+          background-color: #f0f0f0; 
+          color: #666; 
+          font-size: 1.2rem;
+        "
+      >
+        No Image Available
+      </div>
+    `;
+  };
 
   return (
     <div
@@ -31,13 +52,30 @@ const MountainCard = ({ mountain, onBookClick }) => {
       onClick={handleBooking}
     >
       <div className="position-relative">
-        <img
-          src={image || "https://via.placeholder.com/300x200?text=Mountain"}
-          alt={name}
-          className="card-img-top"
-          style={{ height: "200px", objectFit: "cover" }}
-          onClick={() => onBookClick(id)}
-        />
+        {image ? (
+          <img
+            src={image}
+            alt={name}
+            className="card-img-top"
+            style={{ height: "200px", objectFit: "cover" }}
+            onError={handleImageError} // Tangani error gambar
+            onClick={() => onBookClick(id)}
+          />
+        ) : (
+          <div
+            style={{
+              height: "200px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              backgroundColor: "#f0f0f0",
+              color: "#666",
+              fontSize: "1.2rem",
+            }}
+          >
+            Can't Load This Image
+          </div>
+        )}
         <span className={`position-absolute top-0 end-0 m-2 badge bg-${difficultyColor}`}>{difficulty}</span>
       </div>
 
@@ -57,17 +95,16 @@ const MountainCard = ({ mountain, onBookClick }) => {
           <Button
             variant="primary"
             onClick={(e) => {
-              e.stopPropagation() // Prevent card click event
-              onBookClick(id)
+              e.stopPropagation(); // Prevent card click event
+              onBookClick(id);
             }}
           >
-            Book Now
+            View More
           </Button>
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default MountainCard
-
+export default MountainCard;

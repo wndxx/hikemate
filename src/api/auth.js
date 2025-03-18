@@ -6,7 +6,7 @@ const API_BASE_URL = "http://localhost:5000";
 const SECRET_KEY = "your_secret_key"; // Gantilah dengan kunci rahasia yang aman
 
 // Registrasi User
-export const registerUser = async (username, password, email) => {
+export const registerUser = async (username, password, email, phone) => {
     try {
       // Cek apakah username sudah ada
       const checkUser = await axios.get(`${API_BASE_URL}/users`, { params: { username } });
@@ -22,6 +22,7 @@ export const registerUser = async (username, password, email) => {
       const response = await axios.post(`${API_BASE_URL}/users`, {
         username,
         email,
+        phone,
         password: hashedPassword
       });
   

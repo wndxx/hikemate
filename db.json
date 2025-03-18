@@ -2,14 +2,14 @@
   "users": [
     {
       "id": "1",
-      "username": "admin",
-      "email": "admin@example.com",
+      "username": "hiker",
+      "email": "hiker@example.com",
       "password": "$2b$10$U7E0/YBgZifgveX9XARQk.yDs/hXNYF8tNge4C7rAaC7TxkifBQoO"
     },
     {
       "id": "2",
-      "username": "admin123",
-      "email": "admin123@gmail.com",
+      "username": "hiker",
+      "email": "hiker123@gmail.com",
       "password": "$2b$10$S9VeOETQdWAFtzvzULolNe9Q.MFxXj2.YTrvlvwe4SreFbiFjvKA6"
     },
     {
@@ -23,6 +23,32 @@
       "username": "david",
       "email": "david@gmail.com",
       "password": "$2b$10$ucvwIAV63u4/WMb5R.WWwOSXtGicvrWIf7fRrwKXjFMdZsg9UBTFa"
+    },
+    {
+      "id": "5",
+      "username": "billy",
+      "email": "billi@gmail.com",
+      "password": "$2b$10$DNvNT1U4awX/VcUukBchUeHd30RtgHOiK.RFdq0cbMtAt3lOI4y3m"
+    },
+    {
+      "id": "6",
+      "username": "ezra",
+      "email": "ezra@gmail.com",
+      "password": "$2b$10$Hh1xvx.3wE2PAdI05NI6aeADcqcoQniGruX/waDZcbiFBECDLd6Zi"
+    },
+    {
+      "id": "c5b1",
+      "username": "acep",
+      "email": "acep@gmail.com",
+      "role" : "admin",
+      "password": "$2b$10$bB4Yje/8HJl.YYy.zzrNMe9R/p9YjqJlFICTshaDXWinN/GtAKO6O"
+    },
+    {
+      "id": "0c84",
+      "username": "acep2",
+      "email": "ace2p@gmail.com",
+      "phone": "09498234732723",
+      "password": "$2b$10$uFLorjEYy4tIOp3St8u5XuDMa4.vV3n1pDurqYBVC7eA/B7mbTu56"
     }
   ],
   "mountains": [

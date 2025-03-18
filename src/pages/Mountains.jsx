@@ -1,6 +1,6 @@
-import { useState } from "react"
-import Layout from "../components/layout/Layout"
-import MountainCard from "../components/mountainCard/MountainCard"
+import { useState } from "react";
+import Layout from "../components/layout/Layout";
+import MountainCard from "../components/mountainCard/MountainCard";
 
 // Sample data - in a real app, this would come from an API
 const mountainsData = [
@@ -69,38 +69,37 @@ const mountainsData = [
     difficulty: "Hard",
     price: 8000,
     description: "The highest mountain peak in North America, located in Alaska's Denali National Park.",
-    status: true
   },
-]
+];
 
 const Mountains = () => {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [difficultyFilter, setDifficultyFilter] = useState("")
+  const [searchTerm, setSearchTerm] = useState("");
+  const [difficultyFilter, setDifficultyFilter] = useState("");
 
   const handleSearchChange = (e) => {
-    setSearchTerm(e.target.value)
-  }
+    setSearchTerm(e.target.value);
+  };
 
   const handleDifficultyChange = (e) => {
-    setDifficultyFilter(e.target.value)
-  }
+    setDifficultyFilter(e.target.value);
+  };
 
   const handleBookClick = (mountainId) => {
-    alert(`Booking mountain with ID: ${mountainId}`)
+    alert(`Booking mountain with ID: ${mountainId}`);
     // In a real app, this would navigate to a booking page or open a modal
-  }
+  };
 
   // Filter mountains based on search term and difficulty
   const filteredMountains = mountainsData.filter((mountain) => {
     const matchesSearch =
       mountain.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      mountain.location.toLowerCase().includes(searchTerm.toLowerCase())
+      mountain.location.toLowerCase().includes(searchTerm.toLowerCase());
 
     const matchesDifficulty =
-      difficultyFilter === "" || mountain.difficulty.toLowerCase() === difficultyFilter.toLowerCase()
+      difficultyFilter === "" || mountain.difficulty.toLowerCase() === difficultyFilter.toLowerCase();
 
-    return matchesSearch && matchesDifficulty
-  })
+    return matchesSearch && matchesDifficulty;
+  });
 
   return (
     <Layout>
@@ -144,8 +143,7 @@ const Mountains = () => {
         </div>
       </div>
     </Layout>
-  )
-}
+  );
+};
 
-export default Mountains
-
+export default Mountains;

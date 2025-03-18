@@ -31,9 +31,6 @@ const Home = () => {
                     Explore Mountains
                   </Button>
                 </Link>
-                <Button variant="outline-light" size="lg">
-                  Learn More
-                </Button>
               </div>
             </div>
           </div>
@@ -86,7 +83,7 @@ const Home = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-5 bg-primary text-white">
+      {/* <section className="py-5 bg-primary text-white">
         <div className="container py-4 text-center">
           <div className="row justify-content-center">
             <div className="col-lg-8">
@@ -100,7 +97,7 @@ const Home = () => {
             </div>
           </div>
         </div>
-      </section>
+      </section> */}
     </Layout>
   )
 }

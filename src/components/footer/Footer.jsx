@@ -1,8 +1,11 @@
-import { Link } from "react-router-dom"
+import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
-    <footer className="bg-dark text-white py-5">
+    <footer
+      className="bg-dark text-white py-5"
+      
+    >
       <div className="container">
         <div className="row">
           <div className="col-md-4 mb-4 mb-md-0">
@@ -48,8 +51,7 @@ const Footer = () => {
         </div>
       </div>
     </footer>
-  )
-}
+  );
+};
 
-export default Footer
-
+export default Footer;

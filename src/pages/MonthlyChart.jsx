@@ -25,7 +25,7 @@ ChartJS.register(
 const MonthlyChart = ({ data }) => {
   // Data untuk grafik
   const chartData = {
-    labels: data.labels, // Label bulan (e.g., ["Jan", "Feb", "Mar"])
+    labels: data.labels, 
     datasets: [
       {
         label: "Total Transactions",
@@ -44,7 +44,7 @@ const MonthlyChart = ({ data }) => {
     ],
   };
 
-  // Opsi grafik
+
   const options = {
     responsive: true,
     plugins: {

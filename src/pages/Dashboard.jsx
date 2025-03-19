@@ -6,7 +6,6 @@ import RangersTable from "./RangersTable";
 import TransactionsTable from "./TransactionsTable";
 import MonthlyChart from "./MonthlyChart";
 
-
 // json-server --watch db.json --port 5000
 
 const Dashboard = () => {
@@ -25,31 +24,33 @@ const Dashboard = () => {
   const processMonthlyData = (transactions, users) => {
     const monthlyData = {
       labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-      transactions: new Array(12).fill(0), // Inisialisasi array untuk transaksi
-      users: new Array(12).fill(0), // Inisialisasi array untuk pengguna baru
+      transactions: new Array(12).fill(0),
+      users: new Array(12).fill(0),
     };
 
     // Hitung transaksi per bulan
     transactions.forEach((trx) => {
-      const month = new Date(trx.transaction_date).getMonth(); // Ambil bulan (0-11)
-      monthlyData.transactions[month] += 1; // Tambahkan ke bulan yang sesuai
+      const month = new Date(trx.transaction_date).getMonth();
+      monthlyData.transactions[month] += 1;
     });
 
     // Hitung pengguna baru per bulan
     users.forEach((user) => {
-      const month = new Date(user.created_at).getMonth(); // Ambil bulan (0-11)
-      monthlyData.users[month] += 1; // Tambahkan ke bulan yang sesuai
+      const month = new Date(user.created_at).getMonth();
+      monthlyData.users[month] += 1;
     });
 
     return monthlyData;
   };
 
   return (
-    <Layout>
+    <Layout showFooter={false}>
       <div className="d-flex">
         {/* Sidebar */}
         <div className="sidebar bg-light p-4" style={{ width: "250px", minHeight: "100vh" }}>
-          <h4 className="text-center mb-4" style={{ color: "#2c3e50" }}>Dashboard</h4>
+          <h4 className="text-center mb-4" style={{ color: "#2c3e50" }}>
+            Dashboard
+          </h4>
           <ul className="list-unstyled">
             <li className="mb-2">
               <button
@@ -64,7 +65,9 @@ const Dashboard = () => {
                 }}
                 onClick={() => setActiveTable("home")}
               >
-                <span style={{ fontSize: "1.2rem", marginRight: "10px" }}>🏠</span>
+                <span style={{ fontSize: "1.2rem", marginRight: "10px" }}>
+                  <i className="bi bi-house"></i> {/* Home */}
+                </span>
                 <span>Home</span>
               </button>
             </li>
@@ -81,7 +84,9 @@ const Dashboard = () => {
                 }}
                 onClick={() => setActiveTable("mountains")}
               >
-                <span style={{ fontSize: "1.2rem", marginRight: "10px" }}>🏔️</span>
+                <span style={{ fontSize: "1.2rem", marginRight: "10px" }}>
+                  <i className="bi bi-triangle"></i>
+                </span>
                 <span>Mountains</span>
               </button>
             </li>
@@ -98,7 +103,9 @@ const Dashboard = () => {
                 }}
                 onClick={() => setActiveTable("users")}
               >
-                <span style={{ fontSize: "1.2rem", marginRight: "10px" }}>👤</span>
+                <span style={{ fontSize: "1.2rem", marginRight: "10px" }}>
+                  <i className="bi bi-person"></i>
+                </span>
                 <span>Users</span>
               </button>
             </li>
@@ -115,7 +122,9 @@ const Dashboard = () => {
                 }}
                 onClick={() => setActiveTable("rangers")}
               >
-                <span style={{ fontSize: "1.2rem", marginRight: "10px" }}>👤</span>
+                <span style={{ fontSize: "1.2rem", marginRight: "10px" }}>
+                  <i className="bi bi-person-badge"></i>
+                </span>
                 <span>Rangers</span>
               </button>
             </li>
@@ -132,7 +141,9 @@ const Dashboard = () => {
                 }}
                 onClick={() => setActiveTable("transactions")}
               >
-                <span style={{ fontSize: "1.2rem", marginRight: "10px" }}>💳</span>
+                <span style={{ fontSize: "1.2rem", marginRight: "10px" }}>
+                  <i className="bi bi-credit-card"></i>
+                </span>
                 <span>Transactions</span>
               </button>
             </li>
@@ -181,21 +192,13 @@ const Dashboard = () => {
             </div>
           )}
 
-          {activeTable === "mountains" && (
-            <MountainsTable data={data} itemsPerPage={itemsPerPage} />
-          )}
+          {activeTable === "mountains" && <MountainsTable data={data} itemsPerPage={itemsPerPage} />}
 
-          {activeTable === "users" && (
-            <UsersTable data={data} itemsPerPage={itemsPerPage}/>
-          )}
+          {activeTable === "users" && <UsersTable data={data} itemsPerPage={itemsPerPage} />}
 
-          {activeTable === "rangers" && (
-            <RangersTable data={data} itemsPerPage={itemsPerPage}/>
-          )}
+          {activeTable === "rangers" && <RangersTable data={data} itemsPerPage={itemsPerPage} />}
 
-          {activeTable === "transactions" && (
-            <TransactionsTable data={data} itemsPerPage={itemsPerPage}/>
-          )}
+          {activeTable === "transactions" && <TransactionsTable data={data} itemsPerPage={itemsPerPage} />}
         </div>
       </div>
     </Layout>

@@ -8,7 +8,7 @@ const preloadedState = {
   auth: {
     isAuthenticated: !!user,
     user: user || null,
-    role: user?.role || null, // Ambil role dari localStorage
+    role: user?.role || null,
   },
 };
 

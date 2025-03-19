@@ -14,12 +14,12 @@ const MountainCard = ({ mountain, onBookClick }) => {
   const difficultyColor = difficultyColorMap[difficulty.toLowerCase()] || "secondary";
 
   // Handler for booking
-  const handleBooking = (e) => {
-    // Prevent event bubbling if clicked on button
-    if (e.target.tagName === "BUTTON") return;
+ const handleBooking = (e) => {
+  // Prevent event bubbling if clicked on button
+  if (e.target.tagName === "BUTTON") return;
 
-    onBookClick(id);
-  };
+  onBookClick(mountain);
+};
 
   // Handler for image error
   const handleImageError = (e) => {
@@ -93,14 +93,14 @@ const MountainCard = ({ mountain, onBookClick }) => {
             <small className="text-muted d-block">per person</small>
           </div>
           <Button
-            variant="primary"
-            onClick={(e) => {
-              e.stopPropagation(); // Prevent card click event
-              onBookClick(id);
-            }}
-          >
-            View More
-          </Button>
+  variant="primary"
+  onClick={(e) => {
+    e.stopPropagation(); // Prevent card click event
+    onBookClick(mountain);
+  }}
+>
+  View
+</Button>
         </div>
       </div>
     </div>

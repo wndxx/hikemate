@@ -3,7 +3,7 @@ import bcrypt from "bcryptjs";
 // import jwt from "jsonwebtoken";
 
 const API_BASE_URL = "http://localhost:5000";
-const SECRET_KEY = "your_secret_key"; // Gantilah dengan kunci rahasia yang aman
+const SECRET_KEY = "your_secret_key"; 
 
 // Registrasi User
 export const registerUser = async (username, password, email, phone) => {
@@ -15,10 +15,8 @@ export const registerUser = async (username, password, email, phone) => {
         return { success: false, message: "Username already exists" };
       }
   
-      // Hash password sebelum menyimpan
       const hashedPassword = await bcrypt.hash(password, 10);
   
-      // Simpan user baru
       const response = await axios.post(`${API_BASE_URL}/users`, {
         username,
         email,
@@ -37,7 +35,7 @@ export const registerUser = async (username, password, email, phone) => {
 // Login User
 export const loginUser = async (username, password) => {
     try {
-      // Cek apakah user ada di database
+
       const response = await axios.get(`${API_BASE_URL}/users`, {
         params: { username }
       });
@@ -46,9 +44,9 @@ export const loginUser = async (username, password) => {
         return { success: false, message: "User not found" };
       }
   
-      const user = response.data[0]; // Ambil user pertama dengan username yang sesuai
+      const user = response.data[0]; 
   
-      // Bandingkan password dengan bcrypt
+ 
       const isMatch = await bcrypt.compare(password, user.password);
   
       if (!isMatch) {

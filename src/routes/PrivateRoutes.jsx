@@ -9,7 +9,7 @@ const PrivateRoute = ({ children, requiredRole }) => {
   }
 
   if (requiredRole && role !== requiredRole) {
-    return <Navigate to="/" />; // Arahkan ke halaman utama jika role tidak sesuai
+    return <Navigate to="/" />; 
   }
 
   return children;

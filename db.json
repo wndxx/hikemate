@@ -8,15 +8,10 @@
     },
     {
       "id": "2",
-      "username": "hiker",
+      "username": "hiker2",
       "email": "hiker123@gmail.com",
-      "password": "$2b$10$S9VeOETQdWAFtzvzULolNe9Q.MFxXj2.YTrvlvwe4SreFbiFjvKA6"
-    },
-    {
-      "id": "3",
-      "username": "windi",
-      "email": "saputra@gmail.com",
-      "password": "$2b$10$/eqsWc785oynxhdJZxHg4O4iBML9aacM8an7SXDGqsVX.5QSLsu.."
+      "password": "$2b$10$S9VeOETQdWAFtzvzULolNe9Q.MFxXj2.YTrvlvwe4SreFbiFjvKA6",
+      "phone": "123"
     },
     {
       "id": "4",
@@ -40,35 +35,83 @@
       "id": "c5b1",
       "username": "acep",
       "email": "acep@gmail.com",
-      "role" : "admin",
+      "role": "admin",
       "password": "$2b$10$bB4Yje/8HJl.YYy.zzrNMe9R/p9YjqJlFICTshaDXWinN/GtAKO6O"
     },
     {
-      "id": "0c84",
-      "username": "acep2",
-      "email": "ace2p@gmail.com",
-      "phone": "09498234732723",
-      "password": "$2b$10$uFLorjEYy4tIOp3St8u5XuDMa4.vV3n1pDurqYBVC7eA/B7mbTu56"
+      "id": "c677",
+      "username": "windi",
+      "email": "saputra@gmail.com",
+      "phone": "098876650000",
+      "password": "$2b$10$HZZSk6RyHlLoWo6nLfbzQeZgu9pXePcxLQstFsYVTwVmuBD8DTR3i"
     }
   ],
   "mountains": [
     {
       "id": "1",
-      "name": "Gunung Merapi",
-      "location": "Yogyakarta",
-      "description": "Gunung api aktif dengan pemandangan indah.",
-      "status": "active",
-      "price": 50000,
+      "name": "Mount Everest",
+      "image": "https://images.unsplash.com/photo-1575728252059-db43d03fc2de?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NXx8bW91bnRhaW4lMjBwZWFrfGVufDB8fDB8fHww&auto=format&fit=crop&w=500&q=60",
+      "location": "Nepal/Tibet",
+      "elevation": 8848,
+      "difficulty": "Extreme",
+      "price": 12000,
+      "description": "The highest mountain on Earth, located in the Mahalangur Himal sub-range of the Himalayas.",
       "created_at": "2025-03-17T10:00:00Z"
     },
     {
       "id": "2",
-      "name": "Gunung Semeru",
-      "location": "Jawa Timur",
-      "description": "Gunung tertinggi di Pulau Jawa.",
-      "status": "active",
-      "price": 60000,
-      "created_at": "2025-03-17T10:10:00Z"
+      "name": "K2",
+      "image": "https://images.unsplash.com/photo-1623966849439-9b16e9bf8c2b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8azIlMjBtb3VudGFpbnxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=500&q=60",
+      "location": "Pakistan/China",
+      "elevation": 8611,
+      "difficulty": "Extreme",
+      "price": 15000,
+      "description": "The second-highest mountain on Earth, known for its extreme difficulty and danger.",
+      "created_at": "2025-03-17T10:00:00Z"
+    },
+    {
+      "id": "3",
+      "name": "Mount Kilimanjaro",
+      "image": "https://images.unsplash.com/photo-1609198092458-38a293c7ac4b?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8bW91bnQlMjBraWxpbWFuamFyb3xlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=500&q=60",
+      "location": "Tanzania",
+      "elevation": 5895,
+      "difficulty": "Moderate",
+      "price": 4000,
+      "description": "The highest mountain in Africa and the highest single free-standing mountain in the world.",
+      "created_at": "2025-03-17T10:00:00Z"
+    },
+    {
+      "id": "4",
+      "name": "Matterhorn",
+      "image": "https://images.unsplash.com/photo-1565108160850-4a8669f98b8d?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8bWF0dGVyaG9ybnxlbnwwfHwwfHx8MA%3D%3D&auto=format&fit=crop&w=500&q=60",
+      "location": "Switzerland/Italy",
+      "elevation": 4478,
+      "difficulty": "Hard",
+      "price": 6000,
+      "description": "One of the most famous mountains in the Alps, known for its distinctive pyramid shape.",
+      "created_at": "2025-03-17T10:00:00Z"
+    },
+    {
+      "id": "5",
+      "name": "Mount Fuji",
+      "image": "https://images.unsplash.com/photo-1570459027562-4a916cc6113f?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8Mnx8bW91bnQlMjBmdWppfGVufDB8fDB8fHww&auto=format&fit=crop&w=500&q=60",
+      "location": "Japan",
+      "elevation": 3776,
+      "difficulty": "Moderate",
+      "price": 2500,
+      "description": "The highest mountain in Japan and an active volcano, known for its perfectly symmetrical cone.",
+      "created_at": "2025-03-17T10:00:00Z"
+    },
+    {
+      "id": "6",
+      "name": "Denali",
+      "image": "https://images.unsplash.com/photo-1535581652167-3a26c90a9910?ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8M3x8ZGVuYWxpfGVufDB8fDB8fHww&auto=format&fit=crop&w=500&q=60",
+      "location": "Alaska, USA",
+      "elevation": 6190,
+      "difficulty": "Hard",
+      "price": 8000,
+      "description": "The highest mountain peak in North America, located in Alaska's Denali National Park.",
+      "created_at": "2025-03-17T10:00:00Z"
     }
   ],
   "transactions": [
@@ -183,7 +226,7 @@
   "rangers": [
     {
       "id": "1",
-      "mountain_id": "m1",
+      "mountain_id": "Bromo",
       "name": "Budi Ranger",
       "contact_info": "08123456789",
       "assigned_at": "2025-03-17T12:00:00Z"

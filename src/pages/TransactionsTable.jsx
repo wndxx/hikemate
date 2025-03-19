@@ -2,16 +2,21 @@ import React, { useState } from "react";
 
 const TransactionsTable = ({ data, itemsPerPage }) => {
   const [searchQuery, setSearchQuery] = useState("");
+  const [statusFilter, setStatusFilter] = useState("all"); // State untuk filter status
   const [currentPage, setCurrentPage] = useState(1);
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
-  // Filter data berdasarkan searchQuery
-  const filteredData = data.transactions.filter(
-    (trx) =>
+  // Filter data berdasarkan searchQuery dan statusFilter
+  const filteredData = data.transactions.filter((trx) => {
+    const matchesSearch =
       trx.hiker_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      trx.status.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+      trx.status.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesStatus = statusFilter === "all" || trx.status === statusFilter;
+
+    return matchesSearch && matchesStatus;
+  });
 
   // Paginate data yang sudah difilter
   const paginateData = (items, currentPage) => {
@@ -37,8 +42,8 @@ const TransactionsTable = ({ data, itemsPerPage }) => {
     <div className="container mt-4">
       <h2 className="text-center mb-3">Recent Transactions</h2>
 
-      {/* Search Bar */}
-      <div className="mb-3">
+      {/* Search Bar dan Status Filter */}
+      <div className="input-group mb-3">
         <input
           type="text"
           className="form-control"
@@ -49,6 +54,31 @@ const TransactionsTable = ({ data, itemsPerPage }) => {
             setCurrentPage(1); // Reset ke halaman 1 saat melakukan pencarian
           }}
         />
+        <button
+          className="btn btn-outline-secondary dropdown-toggle"
+          type="button"
+          data-bs-toggle="dropdown"
+          aria-expanded="false"
+        >
+          {statusFilter === "all" ? "All Status" : statusFilter}
+        </button>
+        <ul className="dropdown-menu dropdown-menu-end">
+          <li>
+            <button className="dropdown-item" onClick={() => setStatusFilter("all")}>
+              All Status
+            </button>
+          </li>
+          <li>
+            <button className="dropdown-item" onClick={() => setStatusFilter("completed")}>
+              Completed
+            </button>
+          </li>
+          <li>
+            <button className="dropdown-item" onClick={() => setStatusFilter("pending")}>
+              Pending
+            </button>
+          </li>
+        </ul>
       </div>
 
       <div className="table-responsive">
@@ -61,7 +91,7 @@ const TransactionsTable = ({ data, itemsPerPage }) => {
               <th>Date</th>
               <th>Created At</th>
               <th>Status</th>
-              <th>Action</th> {/* Kolom baru untuk aksi */}
+              <th>Action</th>
             </tr>
           </thead>
           <tbody>
@@ -78,11 +108,8 @@ const TransactionsTable = ({ data, itemsPerPage }) => {
                   </span>
                 </td>
                 <td>
-                <button
-                    className="btn btn-info btn-sm me-2"
-                    onClick={() => handleViewDetails(trx)}
-                  >
-                    👁️
+                  <button className="btn btn-info btn-sm" onClick={() => handleViewDetails(trx)}>
+                    <i className="bi bi-eye"></i>
                   </button>
                 </td>
               </tr>

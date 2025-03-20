@@ -44,6 +44,13 @@
       "email": "saputra@gmail.com",
       "phone": "098876650000",
       "password": "$2b$10$HZZSk6RyHlLoWo6nLfbzQeZgu9pXePcxLQstFsYVTwVmuBD8DTR3i"
+    },
+    {
+      "id": "1487",
+      "username": "user123",
+      "email": "oren@gmail.com",
+      "phone": "093838383833",
+      "password": "$2b$10$aa9TOkeo5zFxH8CDdsIswOxx8kPoAEaVXTL.dnq0ou9XCA29rtBb6"
     }
   ],
   "mountains": [

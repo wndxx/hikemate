@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Loading from "../components/loading/Loading";
 
 const RangersTable = ({ data, itemsPerPage }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -9,6 +10,7 @@ const RangersTable = ({ data, itemsPerPage }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [rangerToDelete, setRangerToDelete] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [editRanger, setEditRanger] = useState({
     id: "",
     mountain_id: "",
@@ -70,6 +72,7 @@ const RangersTable = ({ data, itemsPerPage }) => {
   };
 
   const handleUpdateRanger = async () => {
+    setIsLoading(true);
     try {
       const response = await fetch(`http://localhost:5000/rangers/${editRanger.id}`, {
         method: "PUT",
@@ -90,10 +93,13 @@ const RangersTable = ({ data, itemsPerPage }) => {
     } catch (error) {
       console.error("Error updating ranger:", error);
       alert("An error occurred while updating ranger.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const confirmDeleteRanger = async () => {
+    setIsLoading(true);
     if (rangerToDelete) {
       try {
         const response = await fetch(`http://localhost:5000/rangers/${rangerToDelete.id}`, {
@@ -111,6 +117,8 @@ const RangersTable = ({ data, itemsPerPage }) => {
       } catch (error) {
         console.error("Error deleting ranger:", error);
         alert("An error occurred while deleting ranger.");
+      } finally {
+        setIsLoading(false);
       }
     }
   };
@@ -266,8 +274,8 @@ const RangersTable = ({ data, itemsPerPage }) => {
                 <button type="button" className="btn btn-secondary" onClick={handleCloseEditModal}>
                   Close
                 </button>
-                <button type="button" className="btn btn-primary" onClick={handleUpdateRanger}>
-                  Save Changes
+                <button type="button" className="btn btn-primary" onClick={handleUpdateRanger} disabled={isLoading}>
+                  {isLoading ? <Loading /> : "Save Changes"}
                 </button>
               </div>
             </div>
@@ -293,8 +301,8 @@ const RangersTable = ({ data, itemsPerPage }) => {
                 <button type="button" className="btn btn-secondary" onClick={handleCloseDeleteModal}>
                   Cancel
                 </button>
-                <button type="button" className="btn btn-danger" onClick={confirmDeleteRanger}>
-                  Delete
+                <button type="button" className="btn btn-danger" onClick={confirmDeleteRanger} disabled={isLoading}>
+                  {isLoading ? <Loading /> : "Delete"}
                 </button>
               </div>
             </div>

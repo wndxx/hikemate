@@ -6,6 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { loginUser } from "../api/auth";
 import { useDispatch } from "react-redux";
 import { loginSuccess } from "../store/slice/authSlice";
+import Loading from "../components/loading/Loading";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -14,6 +15,7 @@ const Login = () => {
   });
 
   const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false)
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -56,6 +58,9 @@ const Login = () => {
 
     if (!validateForm()) return;
 
+    setIsLoading(true)
+
+    try{
     const result = await loginUser(formData.username, formData.password);
 
     if (result.success) {
@@ -71,6 +76,11 @@ const Login = () => {
     } else {
       alert(result.message);
     }
+  }catch(error){
+    alert("An error occured. Please try again. ")
+  }finally{
+    setIsLoading(false)
+  }
   };
 
   return (
@@ -142,8 +152,8 @@ const Login = () => {
                         </Link>
                       </div>
 
-                      <Button type="submit" variant="primary" fullWidth>
-                        Sign In
+                      <Button type="submit" variant="primary" fullWidth disabled={isLoading}> {isLoading ? <Loading/> : "Sign In"}
+                        
                       </Button>
 
                       <div className="text-center mt-4">

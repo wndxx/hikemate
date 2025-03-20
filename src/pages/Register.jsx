@@ -4,6 +4,7 @@ import Layout from "../components/layout/Layout";
 import Form from "../components/form/Form";
 import Button from "../components/button/Button";
 import { Link } from "react-router-dom";
+import Loading from "../components/loading/Loading";
 
 const Register = () => {
   const [formData, setFormData] = useState({
@@ -11,10 +12,11 @@ const Register = () => {
     email: "",
     password: "",
     confirmPassword: "",
-    phoneNumber: "", // Tambahkan field nomor telepon
+    phoneNumber: "",
   });
 
   const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -70,8 +72,13 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (validateForm()) {
-      // Kirim username, email, password, dan phoneNumber ke API
+
+    if (!validateForm()) return;
+
+    setIsLoading(true);
+    // Kirim username, email, password, dan phoneNumber ke API
+
+    try {
       const result = await registerUser(formData.username, formData.password, formData.email, formData.phoneNumber);
       if (result.success) {
         alert("Registration successful! You can now log in.");
@@ -79,6 +86,10 @@ const Register = () => {
       } else {
         alert(result.message);
       }
+    } catch (error) {
+      alert("An error Occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -99,16 +110,7 @@ const Register = () => {
                         <label htmlFor="username" className="form-label">
                           Username <span className="text-danger">*</span>
                         </label>
-                        <input
-                          type="text"
-                          className={`form-control ${errors.username ? "is-invalid" : ""}`}
-                          id="username"
-                          name="username"
-                          value={formData.username}
-                          onChange={handleChange}
-                          placeholder="Enter your username"
-                          required
-                        />
+                        <input type="text" className={`form-control ${errors.username ? "is-invalid" : ""}`} id="username" name="username" value={formData.username} onChange={handleChange} placeholder="Enter your username" required />
                         {errors.username && <div className="invalid-feedback">{errors.username}</div>}
                       </div>
 
@@ -116,16 +118,7 @@ const Register = () => {
                         <label htmlFor="email" className="form-label">
                           Email <span className="text-danger">*</span>
                         </label>
-                        <input
-                          type="email"
-                          className={`form-control ${errors.email ? "is-invalid" : ""}`}
-                          id="email"
-                          name="email"
-                          value={formData.email}
-                          onChange={handleChange}
-                          placeholder="Enter your email"
-                          required
-                        />
+                        <input type="email" className={`form-control ${errors.email ? "is-invalid" : ""}`} id="email" name="email" value={formData.email} onChange={handleChange} placeholder="Enter your email" required />
                         {errors.email && <div className="invalid-feedback">{errors.email}</div>}
                       </div>
 
@@ -150,16 +143,7 @@ const Register = () => {
                         <label htmlFor="password" className="form-label">
                           Password <span className="text-danger">*</span>
                         </label>
-                        <input
-                          type="password"
-                          className={`form-control ${errors.password ? "is-invalid" : ""}`}
-                          id="password"
-                          name="password"
-                          value={formData.password}
-                          onChange={handleChange}
-                          placeholder="Enter your password"
-                          required
-                        />
+                        <input type="password" className={`form-control ${errors.password ? "is-invalid" : ""}`} id="password" name="password" value={formData.password} onChange={handleChange} placeholder="Enter your password" required />
                         {errors.password && <div className="invalid-feedback">{errors.password}</div>}
                       </div>
 
@@ -180,8 +164,9 @@ const Register = () => {
                         {errors.confirmPassword && <div className="invalid-feedback">{errors.confirmPassword}</div>}
                       </div>
 
-                      <Button type="submit" variant="primary" fullWidth>
-                        Sign Up
+                      <Button type="submit" variant="primary" fullWidth disabled={isLoading}>
+                        {isLoading ? <Loading /> : "Sign Up"}
+                        
                       </Button>
 
                       <div className="text-center mt-4">

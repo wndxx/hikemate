@@ -8,6 +8,8 @@ import PrivateRoute from "./PrivateRoutes";
 import Profile from "../pages/Profile";
 import TransactionPage from "../pages/TransactionPage";
 import PaymentPage from "../pages/PaymentPage";
+import MyBookingPage from "../pages/MyBookingPage";
+import MountainPage from "../pages/MountainPage";
 
 const AppRouter = () => {
   return (
@@ -18,7 +20,9 @@ const AppRouter = () => {
         <Route path="/register" element={<Register />} />
         <Route path="/mountains" element={<Mountains />} />
         <Route path="/transaction/:id" element={<TransactionPage />} />
+        <Route path="/mountain/:id" element={<MountainPage />} />
         <Route path="/payment" element={<PaymentPage />} />
+        <Route path="/my-booking" element={<MyBookingPage />} />
         <Route
           path="/profile"
           element={

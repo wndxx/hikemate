@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Loading from "../components/loading/Loading";
 
 const MountainsTable = ({ data, itemsPerPage }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -10,6 +11,7 @@ const MountainsTable = ({ data, itemsPerPage }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [mountainToDelete, setMountainToDelete] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [newMountain, setNewMountain] = useState({
     name: "",
     location: "",
@@ -88,6 +90,7 @@ const MountainsTable = ({ data, itemsPerPage }) => {
 
   // Fungsi untuk menyimpan data baru
   const handleSaveMountain = async () => {
+    setIsLoading(ture);
     try {
       const newId = generateId(data); // Generate ID unik
       const response = await fetch("http://localhost:5000/mountains", {
@@ -119,6 +122,8 @@ const MountainsTable = ({ data, itemsPerPage }) => {
     } catch (error) {
       console.error("Error saving data:", error);
       alert("An error occurred while saving data.");
+    } finally {
+      setIsLoading(false);
     }
   };
   // Fungsi untuk menutup modal alert sukses
@@ -155,6 +160,7 @@ const MountainsTable = ({ data, itemsPerPage }) => {
 
   // Fungsi untuk menyimpan data yang diupdate
   const handleUpdateMountain = async () => {
+    setIsLoading(true);
     try {
       const updatedMountain = {
         ...editMountain,
@@ -183,6 +189,8 @@ const MountainsTable = ({ data, itemsPerPage }) => {
     } catch (error) {
       console.error("Error updating data:", error);
       alert("An error occurred while updating data.");
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -200,6 +208,7 @@ const MountainsTable = ({ data, itemsPerPage }) => {
 
   // Fungsi untuk mengonfirmasi penghapusan data
   const confirmDeleteMountain = async () => {
+    setIsLoading(true);
     if (mountainToDelete) {
       try {
         const response = await fetch(`http://localhost:5000/mountains/${mountainToDelete.id}`, {
@@ -217,6 +226,8 @@ const MountainsTable = ({ data, itemsPerPage }) => {
       } catch (error) {
         console.error("Error deleting data:", error);
         alert("An error occurred while deleting data.");
+      } finally {
+        setIsLoading(false);
       }
     }
   };
@@ -397,8 +408,8 @@ const MountainsTable = ({ data, itemsPerPage }) => {
                 <button type="button" className="btn btn-secondary" onClick={handleCloseAddModal}>
                   Close
                 </button>
-                <button type="button" className="btn btn-primary" onClick={handleSaveMountain}>
-                  Save
+                <button type="button" className="btn btn-primary" onClick={handleSaveMountain} disabled={isLoading}>
+                  {isLoading ? <Loading /> : "Save"}
                 </button>
               </div>
             </div>
@@ -406,7 +417,6 @@ const MountainsTable = ({ data, itemsPerPage }) => {
         </div>
       )}
 
-      {/* Modal Edit Data */}
       {/* Modal Edit Data */}
       {showEditModal && (
         <div className="modal" style={{ display: "block", backgroundColor: "rgba(0, 0, 0, 0.5)" }}>
@@ -452,8 +462,8 @@ const MountainsTable = ({ data, itemsPerPage }) => {
                 <button type="button" className="btn btn-secondary" onClick={handleCloseEditModal}>
                   Close
                 </button>
-                <button type="button" className="btn btn-primary" onClick={handleUpdateMountain}>
-                  Save Changes
+                <button type="button" className="btn btn-primary" onClick={handleUpdateMountain} disabled={isLoading}>
+                  {isLoading ? <Loading /> : "Save Changes"}
                 </button>
               </div>
             </div>
@@ -479,8 +489,8 @@ const MountainsTable = ({ data, itemsPerPage }) => {
                 <button type="button" className="btn btn-secondary" onClick={handleCloseDeleteModal}>
                   Cancel
                 </button>
-                <button type="button" className="btn btn-danger" onClick={confirmDeleteMountain}>
-                  Delete
+                <button type="button" className="btn btn-danger" onClick={confirmDeleteMountain} disabled={isLoading}>
+                  {isLoading ? <Loading /> : "Delete"}
                 </button>
               </div>
             </div>

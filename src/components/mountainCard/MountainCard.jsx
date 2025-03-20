@@ -1,7 +1,9 @@
+import { useNavigate } from "react-router-dom"; // Import useNavigate
 import Button from "../button/Button";
 
-const MountainCard = ({ mountain, onBookClick }) => {
+const MountainCard = ({ mountain }) => {
   const { id, name, image, location, elevation, difficulty, price, description } = mountain;
+  const navigate = useNavigate(); // Gunakan useNavigate untuk navigasi
 
   // Map difficulty to Bootstrap color classes
   const difficultyColorMap = {
@@ -12,14 +14,6 @@ const MountainCard = ({ mountain, onBookClick }) => {
   };
 
   const difficultyColor = difficultyColorMap[difficulty.toLowerCase()] || "secondary";
-
-  // Handler for booking
- const handleBooking = (e) => {
-  // Prevent event bubbling if clicked on button
-  if (e.target.tagName === "BUTTON") return;
-
-  onBookClick(mountain);
-};
 
   // Handler for image error
   const handleImageError = (e) => {
@@ -42,6 +36,12 @@ const MountainCard = ({ mountain, onBookClick }) => {
     `;
   };
 
+  // Navigasi ke halaman detail gunung
+  const handleViewDetails = (e) => {
+    e.stopPropagation(); // Mencegah event bubbling
+    navigate(`/mountain/${id}`); // Navigasi ke halaman detail gunung
+  };
+
   return (
     <div
       className="card h-100 shadow-sm hover-effect"
@@ -49,7 +49,7 @@ const MountainCard = ({ mountain, onBookClick }) => {
         transition: "transform 0.3s ease",
         cursor: "pointer",
       }}
-      onClick={handleBooking}
+      onClick={handleViewDetails} // Navigasi saat card diklik
     >
       <div className="position-relative">
         {image ? (
@@ -59,7 +59,6 @@ const MountainCard = ({ mountain, onBookClick }) => {
             className="card-img-top"
             style={{ height: "200px", objectFit: "cover" }}
             onError={handleImageError} // Tangani error gambar
-            onClick={() => onBookClick(id)}
           />
         ) : (
           <div
@@ -92,15 +91,9 @@ const MountainCard = ({ mountain, onBookClick }) => {
             <span className="h5 mb-0">${price}</span>
             <small className="text-muted d-block">per person</small>
           </div>
-          <Button
-  variant="primary"
-  onClick={(e) => {
-    e.stopPropagation(); // Prevent card click event
-    onBookClick(mountain);
-  }}
->
-  View
-</Button>
+          <Button variant="primary" onClick={handleViewDetails}>
+            View
+          </Button>
         </div>
       </div>
     </div>

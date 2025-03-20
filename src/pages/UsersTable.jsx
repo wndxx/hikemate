@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import Loading from "../components/loading/Loading";
 
 const UsersTable = ({ data, itemsPerPage }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -9,6 +10,7 @@ const UsersTable = ({ data, itemsPerPage }) => {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showSuccessModal, setShowSuccessModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
+  const [isLoading, setIsLoading] = useState(false)
   const [editUser, setEditUser] = useState({
     id: "",
     username: "",
@@ -70,6 +72,7 @@ const UsersTable = ({ data, itemsPerPage }) => {
   };
 
   const handleUpdateUser = async () => {
+    setIsLoading(true)
     try {
       const response = await fetch(`http://localhost:5000/users/${editUser.id}`, {
         method: "PUT",
@@ -90,10 +93,13 @@ const UsersTable = ({ data, itemsPerPage }) => {
     } catch (error) {
       console.error("Error updating user:", error);
       alert("An error occurred while updating user.");
+    }finally{
+      setIsLoading(false)
     }
   };
 
   const confirmDeleteUser = async () => {
+    setIsLoading(true)
     if (userToDelete) {
       try {
         const response = await fetch(`http://localhost:5000/users/${userToDelete.id}`, {
@@ -111,6 +117,8 @@ const UsersTable = ({ data, itemsPerPage }) => {
       } catch (error) {
         console.error("Error deleting user:", error);
         alert("An error occurred while deleting user.");
+      }finally{
+        setIsLoading(false)
       }
     }
   };
@@ -262,8 +270,8 @@ const UsersTable = ({ data, itemsPerPage }) => {
                 <button type="button" className="btn btn-secondary" onClick={handleCloseEditModal}>
                   Close
                 </button>
-                <button type="button" className="btn btn-primary" onClick={handleUpdateUser}>
-                  Save Changes
+                <button type="button" className="btn btn-primary" onClick={handleUpdateUser} disabled={isLoading}>
+                  {isLoading ? <Loading/> : "Save Changes"}
                 </button>
               </div>
             </div>
@@ -289,8 +297,8 @@ const UsersTable = ({ data, itemsPerPage }) => {
                 <button type="button" className="btn btn-secondary" onClick={handleCloseDeleteModal}>
                   Cancel
                 </button>
-                <button type="button" className="btn btn-danger" onClick={confirmDeleteUser}>
-                  Delete
+                <button type="button" className="btn btn-danger" onClick={confirmDeleteUser} disabled={isLoading}>
+                  {isLoading ? <Loading/> : "Delete"}
                 </button>
               </div>
             </div>

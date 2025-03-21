@@ -1,18 +1,21 @@
+"use client";
+
 import { useState } from "react";
 import { registerUser } from "../api/auth";
 import Layout from "../components/layout/Layout";
 import Form from "../components/form/Form";
 import Button from "../components/button/Button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import Loading from "../components/loading/Loading";
 
 const Register = () => {
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    username: "",
+    name: "",
     email: "",
     password: "",
     confirmPassword: "",
-    phoneNumber: "",
+    phone: "",
   });
 
   const [errors, setErrors] = useState({});
@@ -25,7 +28,7 @@ const Register = () => {
       [name]: value,
     });
 
-    // Hapus error saat pengguna mengetik
+    // Clear error when user types
     if (errors[name]) {
       setErrors({
         ...errors,
@@ -37,10 +40,8 @@ const Register = () => {
   const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.username) {
-      newErrors.username = "Username is required";
-    } else if (formData.username.length < 3) {
-      newErrors.username = "Username must be at least 3 characters";
+    if (!formData.name) {
+      newErrors.name = "Name is required";
     }
 
     if (!formData.email) {
@@ -59,11 +60,8 @@ const Register = () => {
       newErrors.confirmPassword = "Passwords do not match";
     }
 
-    // Validasi nomor telepon
-    if (!formData.phoneNumber) {
-      newErrors.phoneNumber = "Phone number is required";
-    } else if (!/^\d{10,}$/.test(formData.phoneNumber)) {
-      newErrors.phoneNumber = "Phone number must be at least 10 digits";
+    if (!formData.phone) {
+      newErrors.phone = "Phone number is required";
     }
 
     setErrors(newErrors);
@@ -76,18 +74,22 @@ const Register = () => {
     if (!validateForm()) return;
 
     setIsLoading(true);
-    // Kirim username, email, password, dan phoneNumber ke API
 
     try {
-      const result = await registerUser(formData.username, formData.password, formData.email, formData.phoneNumber);
+      const result = await registerUser(formData.name, formData.phone, formData.email, formData.password);
+
       if (result.success) {
         alert("Registration successful! You can now log in.");
-        window.location.href = "/login"; // Redirect ke login
+        navigate("/login");
       } else {
-        alert(result.message);
+        // Show more detailed error message
+        const errorMessage = result.message || "Registration failed. Please try again.";
+        console.error("Registration failed:", result);
+        alert(errorMessage);
       }
     } catch (error) {
-      alert("An error Occurred. Please try again.");
+      console.error("Registration error:", error);
+      alert("An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -96,7 +98,15 @@ const Register = () => {
   return (
     <Layout showNavbar={false} showFooter={false}>
       <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-        <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center", backgroundColor: "#f8f9fa" }}>
+        <div
+          style={{
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            backgroundColor: "#f8f9fa",
+          }}
+        >
           <div className="container">
             <div className="row justify-content-center">
               <div className="col-md-8 col-lg-6 col-xl-5">
@@ -107,11 +117,11 @@ const Register = () => {
 
                     <Form onSubmit={handleSubmit}>
                       <div className="mb-3">
-                        <label htmlFor="username" className="form-label">
-                          Username <span className="text-danger">*</span>
+                        <label htmlFor="name" className="form-label">
+                          Name <span className="text-danger">*</span>
                         </label>
-                        <input type="text" className={`form-control ${errors.username ? "is-invalid" : ""}`} id="username" name="username" value={formData.username} onChange={handleChange} placeholder="Enter your username" required />
-                        {errors.username && <div className="invalid-feedback">{errors.username}</div>}
+                        <input type="text" className={`form-control ${errors.name ? "is-invalid" : ""}`} id="name" name="name" value={formData.name} onChange={handleChange} placeholder="Enter your name" required />
+                        {errors.name && <div className="invalid-feedback">{errors.name}</div>}
                       </div>
 
                       <div className="mb-3">
@@ -123,20 +133,11 @@ const Register = () => {
                       </div>
 
                       <div className="mb-3">
-                        <label htmlFor="phoneNumber" className="form-label">
+                        <label htmlFor="phone" className="form-label">
                           Phone Number <span className="text-danger">*</span>
                         </label>
-                        <input
-                          type="tel"
-                          className={`form-control ${errors.phoneNumber ? "is-invalid" : ""}`}
-                          id="phoneNumber"
-                          name="phoneNumber"
-                          value={formData.phoneNumber}
-                          onChange={handleChange}
-                          placeholder="Enter your phone number"
-                          required
-                        />
-                        {errors.phoneNumber && <div className="invalid-feedback">{errors.phoneNumber}</div>}
+                        <input type="tel" className={`form-control ${errors.phone ? "is-invalid" : ""}`} id="phone" name="phone" value={formData.phone} onChange={handleChange} placeholder="Enter your phone number" required />
+                        {errors.phone && <div className="invalid-feedback">{errors.phone}</div>}
                       </div>
 
                       <div className="mb-3">
@@ -166,7 +167,6 @@ const Register = () => {
 
                       <Button type="submit" variant="primary" fullWidth disabled={isLoading}>
                         {isLoading ? <Loading /> : "Sign Up"}
-                        
                       </Button>
 
                       <div className="text-center mt-4">

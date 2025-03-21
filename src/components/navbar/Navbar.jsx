@@ -1,18 +1,14 @@
+"use client";
+
 import { Link, useLocation } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
-import { logoutSuccess } from "../../store/slice/authSlice";
-import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 const Navbar = () => {
-  const { isAuthenticated, user, role } = useSelector((state) => state.auth);
-  const dispatch = useDispatch();
-  const navigate = useNavigate();
-  const location = useLocation(); // Ambil path saat ini
+  const { isAuthenticated, user, logout } = useAuth();
+  const location = useLocation();
 
   const handleLogout = () => {
-    dispatch(logoutSuccess());
-    localStorage.removeItem("user");
-    navigate("/login");
+    logout();
   };
 
   return (
@@ -39,7 +35,7 @@ const Navbar = () => {
               </Link>
             </li>
 
-            {isAuthenticated && role === "admin" && (
+            {isAuthenticated && user?.role?.includes("SUPERADMIN") && (
               <li className="nav-item">
                 <Link className={`nav-link ${location.pathname === "/dashboard" ? "active" : ""}`} to="/dashboard">
                   Dashboard
@@ -50,12 +46,11 @@ const Navbar = () => {
             <li className="nav-item">
               {isAuthenticated ? (
                 <div className="dropdown">
-                  {/* Tombol dropdown dengan ikon profil */}
                   <button className="btn btn-link nav-link dropdown-toggle d-flex align-items-center" type="button" id="profileDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                    <i className="bi bi-person fs-5 text-white"></i> {/* Ikon profil */}
+                    <i className="bi bi-person fs-5 text-white"></i>
+                    <span className="ms-1">{user?.name?.split("@")[0] || "User"}</span>
                   </button>
 
-                  {/* Menu dropdown */}
                   <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
                     <li>
                       <Link className={`dropdown-item ${location.pathname === "/profile" ? "active" : ""}`} to="/profile">
@@ -82,16 +77,16 @@ const Navbar = () => {
                   className={`nav-link btn text-white ms-lg-2 px-3 ${location.pathname === "/login" ? "active" : ""}`}
                   to="/login"
                   style={{
-                    backgroundColor: "#6c757d", // Warna abu-abu
-                    borderColor: "#6c757d", // Warna border abu-abu
+                    backgroundColor: "#6c757d",
+                    borderColor: "#6c757d",
                   }}
                   onMouseOver={(e) => {
-                    e.target.style.backgroundColor = "#0d6efd"; // Warna biru saat di-hover
-                    e.target.style.borderColor = "#0d6efd"; // Warna border biru saat di-hover
+                    e.target.style.backgroundColor = "#0d6efd";
+                    e.target.style.borderColor = "#0d6efd";
                   }}
                   onMouseOut={(e) => {
-                    e.target.style.backgroundColor = "#6c757d"; // Kembali ke warna abu-abu
-                    e.target.style.borderColor = "#6c757d"; // Kembali ke warna border abu-abu
+                    e.target.style.backgroundColor = "#6c757d";
+                    e.target.style.borderColor = "#6c757d";
                   }}
                 >
                   Login

@@ -1,24 +1,28 @@
-import { useNavigate } from "react-router-dom"; // Import useNavigate
-import Button from "../button/Button";
+"use client"
+
+import { useNavigate } from "react-router-dom"
+import Button from "../button/Button"
 
 const MountainCard = ({ mountain }) => {
-  const { id, name, image, location, elevation, difficulty, price, description } = mountain;
-  const navigate = useNavigate(); // Gunakan useNavigate untuk navigasi
+  const { id, name, mountainCoverUrl, location, status, price, description, isOpen } = mountain
 
-  // Map difficulty to Bootstrap color classes
-  const difficultyColorMap = {
-    easy: "success",
-    moderate: "warning",
-    hard: "danger",
-    extreme: "dark",
-  };
+  const navigate = useNavigate()
 
-  const difficultyColor = difficultyColorMap[difficulty.toLowerCase()] || "secondary";
+  // Map status to Bootstrap color classes
+  const statusColorMap = {
+    SAFE: "success",
+    OPEN: "success",
+    WARNING: "warning",
+    DANGEROUS: "danger",
+    CLOSED: "dark",
+  }
+
+  const statusColor = statusColorMap[status] || "secondary"
 
   // Handler for image error
   const handleImageError = (e) => {
-    // Ganti gambar dengan div yang menampilkan "No Image Available"
-    const imageContainer = e.target.parentElement;
+    // Replace image with div showing "No Image Available"
+    const imageContainer = e.target.parentElement
     imageContainer.innerHTML = `
       <div 
         style="
@@ -33,14 +37,23 @@ const MountainCard = ({ mountain }) => {
       >
         No Image Available
       </div>
-    `;
-  };
+    `
+  }
 
-  // Navigasi ke halaman detail gunung
+  // Navigate to mountain detail page
   const handleViewDetails = (e) => {
-    e.stopPropagation(); // Mencegah event bubbling
-    navigate(`/mountain/${id}`); // Navigasi ke halaman detail gunung
-  };
+    e.stopPropagation() // Prevent event bubbling
+    navigate(`/mountain/${id}`) // Navigate to mountain detail page
+  }
+
+  // Format price to IDR
+  const formatPrice = (price) => {
+    return new Intl.NumberFormat("id-ID", {
+      style: "currency",
+      currency: "IDR",
+      minimumFractionDigits: 0,
+    }).format(price)
+  }
 
   return (
     <div
@@ -49,16 +62,16 @@ const MountainCard = ({ mountain }) => {
         transition: "transform 0.3s ease",
         cursor: "pointer",
       }}
-      onClick={handleViewDetails} // Navigasi saat card diklik
+      onClick={handleViewDetails}
     >
       <div className="position-relative">
-        {image ? (
+        {mountainCoverUrl ? (
           <img
-            src={image}
+            src={mountainCoverUrl || "/placeholder.svg"}
             alt={name}
             className="card-img-top"
             style={{ height: "200px", objectFit: "cover" }}
-            onError={handleImageError} // Tangani error gambar
+            onError={handleImageError}
           />
         ) : (
           <div
@@ -72,23 +85,35 @@ const MountainCard = ({ mountain }) => {
               fontSize: "1.2rem",
             }}
           >
-            Can't Load This Image
+            No Image Available
           </div>
         )}
-        <span className={`position-absolute top-0 end-0 m-2 badge bg-${difficultyColor}`}>{difficulty}</span>
+        <span className={`position-absolute top-0 end-0 m-2 badge bg-${statusColor}`}>{status}</span>
+
+        {!isOpen && (
+          <div
+            className="position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center"
+            style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
+          >
+            <span className="badge bg-danger fs-5 p-2">CLOSED</span>
+          </div>
+        )}
       </div>
 
       <div className="card-body d-flex flex-column">
         <h3 className="card-title h5">{name}</h3>
         <p className="card-text text-muted small mb-1">{location}</p>
         <p className="card-text small mb-2">
-          <strong>{elevation} meters</strong>
+          <strong>Status: </strong>
+          <span className={`text-${statusColor}`}>{status}</span>
         </p>
-        <p className="card-text flex-grow-1">{description}</p>
+        <p className="card-text flex-grow-1">
+          {description && description.length > 100 ? `${description.substring(0, 100)}...` : description}
+        </p>
 
         <div className="d-flex justify-content-between align-items-center mt-3">
           <div>
-            <span className="h5 mb-0">${price}</span>
+            <span className="h5 mb-0">{formatPrice(price)}</span>
             <small className="text-muted d-block">per person</small>
           </div>
           <Button variant="primary" onClick={handleViewDetails}>
@@ -97,7 +122,8 @@ const MountainCard = ({ mountain }) => {
         </div>
       </div>
     </div>
-  );
-};
+  )
+}
 
-export default MountainCard;
+export default MountainCard
+

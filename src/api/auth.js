@@ -1,61 +1,102 @@
-import axios from "axios";
-import bcrypt from "bcryptjs";
-// import jwt from "jsonwebtoken";
+import api from "./axiosInstance";
 
-const API_BASE_URL = "http://localhost:5000";
-const SECRET_KEY = "your_secret_key"; 
+// Login user
+export const loginUser = async (email, password) => {
+  try {
+    // Make sure we're sending the exact format the server expects
+    const requestData = {
+      email,
+      password,
+    };
 
-// Registrasi User
-export const registerUser = async (username, password, email, phone) => {
-    try {
-      // Cek apakah username sudah ada
-      const checkUser = await axios.get(`${API_BASE_URL}/users`, { params: { username } });
-  
-      if (checkUser.data.length > 0) {
-        return { success: false, message: "Username already exists" };
-      }
-  
-      const hashedPassword = await bcrypt.hash(password, 10);
-  
-      const response = await axios.post(`${API_BASE_URL}/users`, {
-        username,
-        email,
-        phone,
-        password: hashedPassword
-      });
-  
-      return { success: true, user: response.data };
-    } catch (error) {
-      console.error("Error registering user", error);
-      return { success: false, message: "Server error" };
+    console.log("Login request data:", requestData);
+
+    const response = await api.post("/auth/login", requestData);
+
+    if (response.data.status === 200) {
+      const { data } = response.data;
+
+      // Store token and user data
+      localStorage.setItem("token", data.token);
+      localStorage.setItem(
+        "user",
+        JSON.stringify({
+          id: data.userAccountId,
+          loggedInId: data.userLoggedInId,
+          name: data.name,
+          email: data.name, // Using email as name based on the response
+          role: data.role,
+        })
+      );
+
+      // Return the user data and token
+      return {
+        success: true,
+        userData: {
+          id: data.userAccountId,
+          loggedInId: data.userLoggedInId,
+          name: data.name,
+          email: data.name, // Using email as name based on the response
+          role: data.role,
+        },
+        token: data.token,
+      };
+    } else {
+      return {
+        success: false,
+        message: response.data.message || "Login failed",
+      };
     }
-  };
-  
+  } catch (error) {
+    console.error("Login error:", error);
 
-// Login User
-export const loginUser = async (username, password) => {
-    try {
+    // Provide more detailed error information
+    return {
+      success: false,
+      message: error.response?.data?.message || error.message || "Server error",
+      status: error.response?.status,
+      error: error,
+    };
+  }
+};
 
-      const response = await axios.get(`${API_BASE_URL}/users`, {
-        params: { username }
-      });
-  
-      if (response.data.length === 0) {
-        return { success: false, message: "User not found" };
-      }
-  
-      const user = response.data[0]; 
-  
- 
-      const isMatch = await bcrypt.compare(password, user.password);
-  
-      if (!isMatch) {
-        return { success: false, message: "Invalid credentials" };
-      }
-  
-      return { success: true, user };
-    } catch (error) {
-      console.error("Login error:", error);
-      return { success: false, message: "Server error" };
+// Register user
+export const registerUser = async (name, phone, email, password) => {
+  try {
+    // Make sure we're sending the exact format the server expects
+    const requestData = {
+      name,
+      phone,
+      email,
+      password,
+    };
+
+    console.log("Register request data:", requestData);
+
+    const response = await api.post("/auth/register", requestData);
+
+    if (response.data.status === 201) {
+      return {
+        success: true,
+        message: response.data.message,
+        userId: response.data.data.userId,
+        roles: response.data.data.roles,
+      };
+    } else {
+      return {
+        success: false,
+        message: response.data.message || "Registration failed",
+      };
     }
-  };
+  } catch (error) {
+    console.error("Registration error:", error);
+
+    // Provide more detailed error information
+    return {
+      success: false,
+      message: error.response?.data?.message || error.message || "Server error",
+      status: error.response?.status,
+      error: error,
+    };
+  }
+};

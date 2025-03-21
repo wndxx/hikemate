@@ -5,11 +5,11 @@ import Layout from "../components/layout/Layout";
 import Form from "../components/form/Form";
 import Button from "../components/button/Button";
 import { Link, useNavigate } from "react-router-dom";
-import { loginUser } from "../api/auth";
+import { loginDirectly } from "../api/authService";
 import { useAuth } from "../context/AuthContext";
 import Loading from "../components/loading/Loading";
 
-const Login = () => {
+const LoginAlternative = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -58,7 +58,8 @@ const Login = () => {
     setIsLoading(true);
 
     try {
-      const result = await loginUser(formData.email, formData.password);
+      // Use the direct fetch approach instead of axios
+      const result = await loginDirectly(formData.email, formData.password);
 
       if (result.success) {
         // Store user data in context
@@ -71,10 +72,7 @@ const Login = () => {
           navigate("/");
         }
       } else {
-        // Show more detailed error message
-        const errorMessage = result.message || "Login failed. Please check your credentials.";
-        console.error("Login failed:", result);
-        alert(errorMessage);
+        alert(result.message || "Login failed. Please check your credentials.");
       }
     } catch (error) {
       console.error("Login error:", error);
@@ -143,7 +141,7 @@ const Login = () => {
                       </div>
 
                       <Button type="submit" variant="primary" fullWidth disabled={isLoading}>
-                        {isLoading ? <Loading /> : "Sign In"}
+                        {isLoading ? <Loading /> : "Sign In (Alternative)"}
                       </Button>
 
                       <div className="text-center mt-4">
@@ -166,4 +164,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default LoginAlternative;

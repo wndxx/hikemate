@@ -1,149 +1,78 @@
-import React, { useEffect, useState } from "react";
-import Layout from "../components/layout/Layout";
-import MountainsTable from "./MountainsTable";
-import UsersTable from "./UsersTable";
-import RangersTable from "./RangersTable";
-import TransactionsTable from "./TransactionsTable";
-import MonthlyChart from "./MonthlyChart";
+"use client"
 
-// json-server --watch db.json --port 5000
+import { useState } from "react"
+import Layout from "../components/layout/Layout"
+import MountainsTable from "./MountainsTable"
+import UsersTable from "./UsersTable"
+import RangersTable from "./RangersTable"
+import TransactionsTable from "./TransactionsTable"
+import MonthlyChart from "./MonthlyChart"
 
 const Dashboard = () => {
-  const [data, setData] = useState({ users: [], rangers: [], mountains: [], transactions: [] });
-  const [activeTable, setActiveTable] = useState("home");
-
-  // State pagination
-  const itemsPerPage = 10;
-
-  useEffect(() => {
-    fetch("/db.json")
-      .then((res) => res.json())
-      .then((data) => setData(data));
-  }, []);
-
-  const processMonthlyData = (transactions, users) => {
-    const monthlyData = {
-      labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
-      transactions: new Array(12).fill(0),
-      users: new Array(12).fill(0),
-    };
-
-    // Hitung transaksi per bulan
-    transactions.forEach((trx) => {
-      const month = new Date(trx.transaction_date).getMonth();
-      monthlyData.transactions[month] += 1;
-    });
-
-    // Hitung pengguna baru per bulan
-    users.forEach((user) => {
-      const month = new Date(user.created_at).getMonth();
-      monthlyData.users[month] += 1;
-    });
-
-    return monthlyData;
-  };
+  const [activeTab, setActiveTab] = useState("home")
 
   return (
     <Layout showFooter={false}>
       <div className="d-flex">
         {/* Sidebar */}
-        <div className="sidebar bg-light p-4" style={{ width: "250px", minHeight: "100vh" }}>
-          <h4 className="text-center mb-4" style={{ color: "#2c3e50" }}>
+        <div className="sidebar bg-dark p-4" style={{ width: "250px", minHeight: "100vh" }}>
+          <h4 className="text-center mb-4 text-white">
+            <i className="bi bi-speedometer2 me-2"></i>
             Dashboard
           </h4>
           <ul className="list-unstyled">
             <li className="mb-2">
               <button
-                className="btn w-100 text-start d-flex align-items-center"
-                style={{
-                  backgroundColor: activeTable === "home" ? "#007bff" : "transparent",
-                  color: activeTable === "home" ? "#fff" : "#000",
-                  border: "none",
-                  borderRadius: "5px",
-                  padding: "10px 15px",
-                  transition: "background-color 0.3s ease, color 0.3s ease",
-                }}
-                onClick={() => setActiveTable("home")}
+                className={`btn w-100 text-start d-flex align-items-center ${
+                  activeTab === "home" ? "btn-primary" : "btn-dark"
+                }`}
+                onClick={() => setActiveTab("home")}
               >
-                <span style={{ fontSize: "1.2rem", marginRight: "10px" }}>
-                  <i className="bi bi-house"></i> {/* Home */}
-                </span>
+                <i className="bi bi-house me-2"></i>
                 <span>Home</span>
               </button>
             </li>
             <li className="mb-2">
               <button
-                className="btn w-100 text-start d-flex align-items-center"
-                style={{
-                  backgroundColor: activeTable === "mountains" ? "#007bff" : "transparent",
-                  color: activeTable === "mountains" ? "#fff" : "#000",
-                  border: "none",
-                  borderRadius: "5px",
-                  padding: "10px 15px",
-                  transition: "background-color 0.3s ease, color 0.3s ease",
-                }}
-                onClick={() => setActiveTable("mountains")}
+                className={`btn w-100 text-start d-flex align-items-center ${
+                  activeTab === "mountains" ? "btn-primary" : "btn-dark"
+                }`}
+                onClick={() => setActiveTab("mountains")}
               >
-                <span style={{ fontSize: "1.2rem", marginRight: "10px" }}>
-                  <i className="bi bi-triangle"></i>
-                </span>
+                <i className="bi bi-triangle me-2"></i>
                 <span>Mountains</span>
               </button>
             </li>
             <li className="mb-2">
               <button
-                className="btn w-100 text-start d-flex align-items-center"
-                style={{
-                  backgroundColor: activeTable === "users" ? "#007bff" : "transparent",
-                  color: activeTable === "users" ? "#fff" : "#000",
-                  border: "none",
-                  borderRadius: "5px",
-                  padding: "10px 15px",
-                  transition: "background-color 0.3s ease, color 0.3s ease",
-                }}
-                onClick={() => setActiveTable("users")}
+                className={`btn w-100 text-start d-flex align-items-center ${
+                  activeTab === "users" ? "btn-primary" : "btn-dark"
+                }`}
+                onClick={() => setActiveTab("users")}
               >
-                <span style={{ fontSize: "1.2rem", marginRight: "10px" }}>
-                  <i className="bi bi-person"></i>
-                </span>
+                <i className="bi bi-person me-2"></i>
                 <span>Users</span>
               </button>
             </li>
             <li className="mb-2">
               <button
-                className="btn w-100 text-start d-flex align-items-center"
-                style={{
-                  backgroundColor: activeTable === "rangers" ? "#007bff" : "transparent",
-                  color: activeTable === "rangers" ? "#fff" : "#000",
-                  border: "none",
-                  borderRadius: "5px",
-                  padding: "10px 15px",
-                  transition: "background-color 0.3s ease, color 0.3s ease",
-                }}
-                onClick={() => setActiveTable("rangers")}
+                className={`btn w-100 text-start d-flex align-items-center ${
+                  activeTab === "rangers" ? "btn-primary" : "btn-dark"
+                }`}
+                onClick={() => setActiveTab("rangers")}
               >
-                <span style={{ fontSize: "1.2rem", marginRight: "10px" }}>
-                  <i className="bi bi-person-badge"></i>
-                </span>
+                <i className="bi bi-person-badge me-2"></i>
                 <span>Rangers</span>
               </button>
             </li>
             <li>
               <button
-                className="btn w-100 text-start d-flex align-items-center"
-                style={{
-                  backgroundColor: activeTable === "transactions" ? "#007bff" : "transparent",
-                  color: activeTable === "transactions" ? "#fff" : "#000",
-                  border: "none",
-                  borderRadius: "5px",
-                  padding: "10px 15px",
-                  transition: "background-color 0.3s ease, color 0.3s ease",
-                }}
-                onClick={() => setActiveTable("transactions")}
+                className={`btn w-100 text-start d-flex align-items-center ${
+                  activeTab === "transactions" ? "btn-primary" : "btn-dark"
+                }`}
+                onClick={() => setActiveTab("transactions")}
               >
-                <span style={{ fontSize: "1.2rem", marginRight: "10px" }}>
-                  <i className="bi bi-credit-card"></i>
-                </span>
+                <i className="bi bi-credit-card me-2"></i>
                 <span>Transactions</span>
               </button>
             </li>
@@ -151,58 +80,76 @@ const Dashboard = () => {
         </div>
 
         {/* Main Content */}
-        <div className="container-fluid py-5 flex-grow-1">
-          {activeTable === "home" && (
-            <div className="container mt-4">
-              <h2 className="text-center mb-3">Dashboard Overview</h2>
+        <div className="container-fluid py-4 flex-grow-1">
+          {activeTab === "home" && (
+            <div className="container">
+              <h2 className="text-center mb-4">Dashboard Overview</h2>
               <div className="row">
-                <div className="col-md-4 mb-4">
-                  <div className="card text-center">
-                    <div className="card-body">
-                      <h5 className="card-title">Total Mountains</h5>
-                      <p className="card-text display-4">{data.mountains.length}</p>
+                <div className="col-md-3 mb-4">
+                  <div className="card bg-primary text-white">
+                    <div className="card-body text-center">
+                      <i className="bi bi-triangle display-4"></i>
+                      <h5 className="card-title mt-3">Mountains</h5>
+                      <p className="card-text display-6">Loading...</p>
                     </div>
                   </div>
                 </div>
-                <div className="col-md-4 mb-4">
-                  <div className="card text-center">
-                    <div className="card-body">
-                      <h5 className="card-title">Total Users</h5>
-                      <p className="card-text display-4">{data.users.length}</p>
+                <div className="col-md-3 mb-4">
+                  <div className="card bg-success text-white">
+                    <div className="card-body text-center">
+                      <i className="bi bi-person display-4"></i>
+                      <h5 className="card-title mt-3">Users</h5>
+                      <p className="card-text display-6">Loading...</p>
                     </div>
                   </div>
                 </div>
-                <div className="col-md-4 mb-4">
-                  <div className="card text-center">
-                    <div className="card-body">
-                      <h5 className="card-title">Total Transactions</h5>
-                      <p className="card-text display-4">{data.transactions.length}</p>
+                <div className="col-md-3 mb-4">
+                  <div className="card bg-warning text-dark">
+                    <div className="card-body text-center">
+                      <i className="bi bi-person-badge display-4"></i>
+                      <h5 className="card-title mt-3">Rangers</h5>
+                      <p className="card-text display-6">Loading...</p>
+                    </div>
+                  </div>
+                </div>
+                <div className="col-md-3 mb-4">
+                  <div className="card bg-info text-white">
+                    <div className="card-body text-center">
+                      <i className="bi bi-credit-card display-4"></i>
+                      <h5 className="card-title mt-3">Transactions</h5>
+                      <p className="card-text display-6">Loading...</p>
                     </div>
                   </div>
                 </div>
               </div>
 
-              {/* Grafik Tren Bulanan */}
+              {/* Monthly Trends Chart */}
               <div className="card mb-4">
+                <div className="card-header bg-light">
+                  <h5 className="card-title mb-0">Monthly Trends</h5>
+                </div>
                 <div className="card-body">
-                  <h5 className="card-title">Monthly Trends</h5>
-                  <MonthlyChart data={processMonthlyData(data.transactions, data.users)} />
+                  <MonthlyChart
+                    data={{
+                      labels: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
+                      transactions: [10, 15, 8, 12, 20, 25, 18, 22, 30, 25, 28, 32],
+                      users: [5, 8, 12, 10, 15, 18, 20, 25, 22, 28, 30, 35],
+                    }}
+                  />
                 </div>
               </div>
             </div>
           )}
 
-          {activeTable === "mountains" && <MountainsTable data={data} itemsPerPage={itemsPerPage} />}
-
-          {activeTable === "users" && <UsersTable data={data} itemsPerPage={itemsPerPage} />}
-
-          {activeTable === "rangers" && <RangersTable data={data} itemsPerPage={itemsPerPage} />}
-
-          {activeTable === "transactions" && <TransactionsTable data={data} itemsPerPage={itemsPerPage} />}
+          {activeTab === "mountains" && <MountainsTable />}
+          {activeTab === "users" && <UsersTable />}
+          {activeTab === "rangers" && <RangersTable />}
+          {activeTab === "transactions" && <TransactionsTable />}
         </div>
       </div>
     </Layout>
-  );
-};
+  )
+}
 
-export default Dashboard;
+export default Dashboard
+

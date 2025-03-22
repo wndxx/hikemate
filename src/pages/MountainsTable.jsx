@@ -455,13 +455,7 @@ const MountainsTable = () => {
                     </td>
                     <td>{mountain.quotaLimit}</td>
                     <td>
-                      <button
-                        className="btn btn-info btn-sm me-1"
-                        onClick={() => handleViewDetail(mountain)}
-                        title="View Details"
-                      >
-                        <i className="bi bi-eye"></i>
-                      </button>
+                      
                       <button
                         className="btn btn-warning btn-sm me-1"
                         onClick={() => handleEditMountain(mountain)}
@@ -470,11 +464,18 @@ const MountainsTable = () => {
                         <i className="bi bi-pencil"></i>
                       </button>
                       <button
-                        className="btn btn-danger btn-sm"
+                        className="btn btn-danger btn-sm me-1"
                         onClick={() => handleDeleteMountain(mountain)}
                         title="Delete"
                       >
                         <i className="bi bi-trash"></i>
+                      </button>
+                      <button
+                        className="btn btn-info btn-sm "
+                        onClick={() => handleViewDetail(mountain)}
+                        title="View Details"
+                      >
+                        <i className="bi bi-eye"></i>
                       </button>
                     </td>
                   </tr>

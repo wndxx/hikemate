@@ -251,18 +251,19 @@ const UsersTable = () => {
                     <td>{hiker.phoneNumber}</td>
                     <td>{formatDate(hiker.createdAt)}</td>
                     <td>
-                      <button
-                        className="btn btn-info btn-sm"
-                        onClick={() => handleViewDetail(hiker)}
-                        title="View Details"
-                      >
-                        <i className="bi bi-eye"></i>
-                      </button>
+                      
                       <button className="btn btn-warning btn-sm me-2" onClick={() => handleEditUser(hiker)}>
                         <i className="bi bi-pencil"></i>
                       </button>
                       <button className="btn btn-danger btn-sm me-2" onClick={() => handleDeleteUser(hiker)}>
                         <i className="bi bi-trash"></i>
+                      </button>
+                      <button
+                        className="btn btn-info btn-sm "
+                        onClick={() => handleViewDetail(hiker)}
+                        title="View Details"
+                      >
+                        <i className="bi bi-eye"></i>
                       </button>
                     </td>
                   </tr>

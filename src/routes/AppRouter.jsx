@@ -1,16 +1,18 @@
-import { Routes, Route } from "react-router-dom"
-import Home from "../pages/Home"
-import Login from "../pages/Login"
-import LoginAlternative from "../pages/LoginAlternative"
-import Register from "../pages/Register"
-import Mountains from "../pages/Mountains"
-import Dashboard from "../pages/Dashboard"
-import PrivateRoute from "./PrivateRoutes"
-import Profile from "../pages/Profile"
-import TransactionPage from "../pages/TransactionPage"
-import PaymentPage from "../pages/PaymentPage"
-import MyBookingPage from "../pages/MyBookingPage"
-import MountainPage from "../pages/MountainPage"
+import { Routes, Route } from "react-router-dom";
+import Home from "../pages/Home";
+import Login from "../pages/Login";
+import LoginAlternative from "../pages/LoginAlternative";
+import Register from "../pages/Register";
+import Mountains from "../pages/Mountains";
+import Dashboard from "../pages/Dashboard";
+import PrivateRoute from "./PrivateRoutes";
+import Profile from "../pages/Profile";
+import TransactionPage from "../pages/TransactionPage";
+import PaymentPage from "../pages/PaymentPage";
+import MyBookingPage from "../pages/MyBookingPage";
+import MountainPage from "../pages/MountainPage";
+import RangersTable from "../pages/RangersTable";
+import RangerDetail from "../pages/RangerDetail";
 
 const AppRouter = () => {
   return (
@@ -24,6 +26,8 @@ const AppRouter = () => {
       <Route path="/mountain/:id" element={<MountainPage />} />
       <Route path="/payment" element={<PaymentPage />} />
       <Route path="/my-booking" element={<MyBookingPage />} />
+      <Route path="/rangers" element={<RangersTable />} />
+      <Route path="/ranger/:id" element={<RangerDetail />} />
       <Route
         path="/profile"
         element={
@@ -41,8 +45,7 @@ const AppRouter = () => {
         }
       />
     </Routes>
-  )
-}
+  );
+};
 
-export default AppRouter
-
+export default AppRouter;

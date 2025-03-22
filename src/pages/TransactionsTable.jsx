@@ -1,57 +1,83 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { getAllTransactions } from "../api/transactions";
 
-const TransactionsTable = ({ data, itemsPerPage }) => {
+const TransactionsTable = () => {
+  const [transactions, setTransactions] = useState([]);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    totalPages: 1,
+    totalElements: 0,
+    hasNext: false,
+    hasPrevious: false,
+  });
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all"); // State untuk filter status
-  const [currentPage, setCurrentPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState("all");
   const [selectedTransaction, setSelectedTransaction] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
-  // Filter data berdasarkan searchQuery dan statusFilter
-  const filteredData = data.transactions.filter((trx) => {
-    const matchesSearch =
-      trx.hiker_id.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      trx.status.toLowerCase().includes(searchQuery.toLowerCase());
+  // Fetch transactions with pagination
+  const fetchTransactions = async (page = 1) => {
+    setIsLoading(true);
+    const result = await getAllTransactions(page, 10, "asc", "id");
+    if (result.success) {
+      setTransactions(result.transactions);
+      setPagination(result.pagination);
+    } else {
+      setError(result.message);
+    }
+    setIsLoading(false);
+  };
 
-    const matchesStatus = statusFilter === "all" || trx.status === statusFilter;
+  useEffect(() => {
+    fetchTransactions();
+  }, []);
+
+  // Filter transactions based on search query and status filter
+  const filteredTransactions = transactions.filter((trx) => {
+    const matchesSearch =
+      trx.hiker.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      trx.paymentStatus.toLowerCase().includes(searchQuery.toLowerCase());
+
+    const matchesStatus = statusFilter === "all" || trx.paymentStatus === statusFilter;
 
     return matchesSearch && matchesStatus;
   });
 
-  // Paginate data yang sudah difilter
-  const paginateData = (items, currentPage) => {
-    const startIndex = (currentPage - 1) * itemsPerPage;
-    return items.slice(startIndex, startIndex + itemsPerPage);
-  };
-
-  // Hitung total halaman berdasarkan data yang sudah difilter
-  const totalPages = Math.ceil(filteredData.length / itemsPerPage);
-
-  // Fungsi untuk menangani klik detail
+  // Handle view details
   const handleViewDetails = (trx) => {
     setSelectedTransaction(trx);
     setShowModal(true);
   };
 
-  // Fungsi untuk menutup modal
+  // Handle close modal
   const handleCloseModal = () => {
     setShowModal(false);
   };
+
+  if (isLoading) {
+    return <div className="text-center my-5">Loading...</div>;
+  }
+
+  if (error) {
+    return <div className="alert alert-danger text-center my-5">{error}</div>;
+  }
 
   return (
     <div className="container mt-4">
       <h2 className="text-center mb-3">Recent Transactions</h2>
 
-      {/* Search Bar dan Status Filter */}
+      {/* Search Bar and Status Filter */}
       <div className="input-group mb-3">
         <input
           type="text"
           className="form-control"
-          placeholder="Search by hiker ID or status..."
+          placeholder="Search by hiker name or status..."
           value={searchQuery}
           onChange={(e) => {
             setSearchQuery(e.target.value);
-            setCurrentPage(1); // Reset ke halaman 1 saat melakukan pencarian
+            setPagination((prev) => ({ ...prev, page: 1 })); // Reset to page 1 on search
           }}
         />
         <button
@@ -69,18 +95,19 @@ const TransactionsTable = ({ data, itemsPerPage }) => {
             </button>
           </li>
           <li>
-            <button className="dropdown-item" onClick={() => setStatusFilter("completed")}>
-              Completed
+            <button className="dropdown-item" onClick={() => setStatusFilter("ORDERED")}>
+              Ordered
             </button>
           </li>
           <li>
-            <button className="dropdown-item" onClick={() => setStatusFilter("pending")}>
-              Pending
+            <button className="dropdown-item" onClick={() => setStatusFilter("PAID")}>
+              Paid
             </button>
           </li>
         </ul>
       </div>
 
+      {/* Transactions Table */}
       <div className="table-responsive">
         <table className="table table-striped table-hover">
           <thead className="table-dark">
@@ -89,31 +116,48 @@ const TransactionsTable = ({ data, itemsPerPage }) => {
               <th>Hiker</th>
               <th>Amount</th>
               <th>Date</th>
-              <th>Created At</th>
               <th>Status</th>
               <th>Action</th>
             </tr>
           </thead>
           <tbody>
-            {paginateData(filteredData, currentPage).map((trx) => (
-              <tr key={trx.id}>
-                <td>{trx.id}</td>
-                <td>{trx.hiker_id}</td>
-                <td>${trx.total_amount}</td>
-                <td>{new Date(trx.transaction_date).toLocaleDateString()}</td>
-                <td>{trx.created_at}</td>
-                <td>
-                  <span className={`badge ${trx.status === "completed" ? "bg-success" : "bg-warning"}`}>
-                    {trx.status}
-                  </span>
-                </td>
-                <td>
-                  <button className="btn btn-info btn-sm" onClick={() => handleViewDetails(trx)}>
-                    <i className="bi bi-eye"></i>
-                  </button>
+            {filteredTransactions.length > 0 ? (
+              filteredTransactions.map((trx) => (
+                <tr key={trx.transactionId}>
+                  <td>{trx.transactionId.substring(0, 8)}...</td>
+                  <td>{trx.hiker.name}</td>
+                  <td>Rp {trx.price.toLocaleString()}</td>
+                  <td>{new Date(trx.transactionDate).toLocaleDateString()}</td>
+                  <td>
+                    <span
+                      className={`badge ${
+                        trx.paymentStatus === "PAID"
+                          ? "bg-success"
+                          : trx.paymentStatus === "ORDERED"
+                          ? "bg-warning"
+                          : "bg-secondary"
+                      }`}
+                    >
+                      {trx.paymentStatus}
+                    </span>
+                  </td>
+                  <td>
+                    <button
+                      className="btn btn-info btn-sm"
+                      onClick={() => handleViewDetails(trx)}
+                    >
+                      <i className="bi bi-eye"></i>
+                    </button>
+                  </td>
+                </tr>
+              ))
+            ) : (
+              <tr>
+                <td colSpan="6" className="text-center">
+                  No transactions found
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>
@@ -121,27 +165,27 @@ const TransactionsTable = ({ data, itemsPerPage }) => {
       {/* Pagination */}
       <nav>
         <ul className="pagination justify-content-center">
-          <li className={`page-item ${currentPage === 1 ? "disabled" : ""}`}>
+          <li className={`page-item ${!pagination.hasPrevious ? "disabled" : ""}`}>
             <button
-              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               className="page-link"
-              disabled={currentPage === 1}
+              onClick={() => fetchTransactions(pagination.page - 1)}
+              disabled={!pagination.hasPrevious}
             >
               &lt;
             </button>
           </li>
-          {Array.from({ length: totalPages }, (_, index) => (
-            <li key={index} className={`page-item ${currentPage === index + 1 ? "active" : ""}`}>
-              <button onClick={() => setCurrentPage(index + 1)} className="page-link">
+          {[...Array(pagination.totalPages)].map((_, index) => (
+            <li key={index} className={`page-item ${pagination.page === index + 1 ? "active" : ""}`}>
+              <button className="page-link" onClick={() => fetchTransactions(index + 1)}>
                 {index + 1}
               </button>
             </li>
           ))}
-          <li className={`page-item ${currentPage === totalPages ? "disabled" : ""}`}>
+          <li className={`page-item ${!pagination.hasNext ? "disabled" : ""}`}>
             <button
-              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
               className="page-link"
-              disabled={currentPage === totalPages}
+              onClick={() => fetchTransactions(pagination.page + 1)}
+              disabled={!pagination.hasNext}
             >
               &gt;
             </button>
@@ -149,7 +193,7 @@ const TransactionsTable = ({ data, itemsPerPage }) => {
         </ul>
       </nav>
 
-      {/* Modal untuk menampilkan detail transaksi */}
+      {/* Modal for Transaction Details */}
       {showModal && (
         <div className="modal fade show" style={{ display: "block", backgroundColor: "rgba(0, 0, 0, 0.5)" }}>
           <div className="modal-dialog">
@@ -161,12 +205,12 @@ const TransactionsTable = ({ data, itemsPerPage }) => {
               <div className="modal-body">
                 {selectedTransaction && (
                   <div>
-                    <p><strong>ID:</strong> {selectedTransaction.id}</p>
-                    <p><strong>Hiker ID:</strong> {selectedTransaction.hiker_id}</p>
-                    <p><strong>Amount:</strong> ${selectedTransaction.total_amount}</p>
-                    <p><strong>Date:</strong> {new Date(selectedTransaction.transaction_date).toLocaleDateString()}</p>
-                    <p><strong>Created At:</strong> {selectedTransaction.created_at}</p>
-                    <p><strong>Status:</strong> {selectedTransaction.status}</p>
+                    <p><strong>ID:</strong> {selectedTransaction.transactionId}</p>
+                    <p><strong>Hiker:</strong> {selectedTransaction.hiker.name}</p>
+                    <p><strong>Amount:</strong> Rp {selectedTransaction.price.toLocaleString()}</p>
+                    <p><strong>Date:</strong> {new Date(selectedTransaction.transactionDate).toLocaleDateString()}</p>
+                    <p><strong>Status:</strong> {selectedTransaction.paymentStatus}</p>
+                    <p><strong>Route:</strong> {selectedTransaction.route}</p>
                   </div>
                 )}
               </div>

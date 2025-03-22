@@ -1,15 +1,63 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Layout from "../components/layout/Layout"
-import MountainsTable from "./MountainsTable"
-import UsersTable from "./UsersTable"
-import RangersTable from "./RangersTable"
-import TransactionsTable from "./TransactionsTable"
-import MonthlyChart from "./MonthlyChart"
+import { useState, useEffect } from "react";
+import Layout from "../components/layout/Layout";
+import MountainsTable from "./MountainsTable";
+import UsersTable from "./UsersTable";
+import RangersTable from "./RangersTable";
+import TransactionsTable from "./TransactionsTable";
+import MonthlyChart from "./MonthlyChart";
+import { getAllMountains } from "../api/mountains";
+import { getAllRangers } from "../api/rangers";
+import { getAllTransactions } from "../api/transactions";
+import { getAllHikers } from "../api/hikers"; 
 
 const Dashboard = () => {
-  const [activeTab, setActiveTab] = useState("home")
+  const [activeTab, setActiveTab] = useState("home");
+  const [totalMountains, setTotalMountains] = useState(0);
+  const [totalUsers, setTotalUsers] = useState(0);
+  const [totalRangers, setTotalRangers] = useState(0);
+  const [totalTransactions, setTotalTransactions] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Fetch total data
+  useEffect(() => {
+    const fetchTotalData = async () => {
+      setIsLoading(true);
+
+      try {
+        // Fetch total mountains
+        const mountainsResponse = await getAllMountains(1, 1); // Fetch hanya 1 item untuk mendapatkan total
+        if (mountainsResponse.success) {
+          setTotalMountains(mountainsResponse.pagination.totalElements);
+        }
+
+        // Fetch total users
+        const usersResponse = await getAllHikers(1, 1); // Fetch hanya 1 item untuk mendapatkan total
+        if (usersResponse.success) {
+          setTotalUsers(usersResponse.pagination.totalElements);
+        }
+
+        // Fetch total rangers
+        const rangersResponse = await getAllRangers(1, 1); // Fetch hanya 1 item untuk mendapatkan total
+        if (rangersResponse.success) {
+          setTotalRangers(rangersResponse.pagination.totalElements);
+        }
+
+        // Fetch total transactions
+        const transactionsResponse = await getAllTransactions(1, 1); // Fetch hanya 1 item untuk mendapatkan total
+        if (transactionsResponse.success) {
+          setTotalTransactions(transactionsResponse.pagination.totalElements);
+        }
+      } catch (error) {
+        console.error("Error fetching total data:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchTotalData();
+  }, []);
 
   return (
     <Layout showFooter={false}>
@@ -85,39 +133,54 @@ const Dashboard = () => {
             <div className="container">
               <h2 className="text-center mb-4">Dashboard Overview</h2>
               <div className="row">
+                {/* Mountains Card */}
                 <div className="col-md-3 mb-4">
                   <div className="card bg-primary text-white">
                     <div className="card-body text-center">
                       <i className="bi bi-triangle display-4"></i>
                       <h5 className="card-title mt-3">Mountains</h5>
-                      <p className="card-text display-6">Loading...</p>
+                      <p className="card-text display-6">
+                        {isLoading ? "Loading..." : totalMountains}
+                      </p>
                     </div>
                   </div>
                 </div>
+
+                {/* Users Card */}
                 <div className="col-md-3 mb-4">
                   <div className="card bg-success text-white">
                     <div className="card-body text-center">
                       <i className="bi bi-person display-4"></i>
                       <h5 className="card-title mt-3">Users</h5>
-                      <p className="card-text display-6">Loading...</p>
+                      <p className="card-text display-6">
+                        {isLoading ? "Loading..." : totalUsers}
+                      </p>
                     </div>
                   </div>
                 </div>
+
+                {/* Rangers Card */}
                 <div className="col-md-3 mb-4">
                   <div className="card bg-warning text-dark">
                     <div className="card-body text-center">
                       <i className="bi bi-person-badge display-4"></i>
                       <h5 className="card-title mt-3">Rangers</h5>
-                      <p className="card-text display-6">Loading...</p>
+                      <p className="card-text display-6">
+                        {isLoading ? "Loading..." : totalRangers}
+                      </p>
                     </div>
                   </div>
                 </div>
+
+                {/* Transactions Card */}
                 <div className="col-md-3 mb-4">
                   <div className="card bg-info text-white">
                     <div className="card-body text-center">
                       <i className="bi bi-credit-card display-4"></i>
                       <h5 className="card-title mt-3">Transactions</h5>
-                      <p className="card-text display-6">Loading...</p>
+                      <p className="card-text display-6">
+                        {isLoading ? "Loading..." : totalTransactions}
+                      </p>
                     </div>
                   </div>
                 </div>
@@ -148,8 +211,7 @@ const Dashboard = () => {
         </div>
       </div>
     </Layout>
-  )
-}
+  );
+};
 
-export default Dashboard
-
+export default Dashboard;

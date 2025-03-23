@@ -1,72 +1,143 @@
-import React, { useState, useEffect } from "react";
-import { getAllTransactions } from "../api/transactions";
+"use client"
+
+import { useState, useEffect } from "react"
+import { getAllTransactions, updateTransactionStatus } from "../api/transactions"
+import { useAuth } from "../context/AuthContext"
+import Loading from "../components/loading/Loading"
 
 const TransactionsTable = () => {
-  const [transactions, setTransactions] = useState([]);
+  const { user } = useAuth()
+  const [transactions, setTransactions] = useState([])
   const [pagination, setPagination] = useState({
     page: 1,
     totalPages: 1,
     totalElements: 0,
     hasNext: false,
     hasPrevious: false,
-  });
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState("all");
-  const [selectedTransaction, setSelectedTransaction] = useState(null);
-  const [showModal, setShowModal] = useState(false);
+  })
+  const [isLoading, setIsLoading] = useState(false)
+  const [isUpdating, setIsUpdating] = useState(false)
+  const [error, setError] = useState(null)
+  const [searchQuery, setSearchQuery] = useState("")
+  const [statusFilter, setStatusFilter] = useState("all")
+  const [selectedTransaction, setSelectedTransaction] = useState(null)
+  const [showModal, setShowModal] = useState(false)
+  const [showStatusModal, setShowStatusModal] = useState(false)
+  const [statusUpdateSuccess, setStatusUpdateSuccess] = useState(null)
 
   // Fetch transactions with pagination
   const fetchTransactions = async (page = 1) => {
-    setIsLoading(true);
-    const result = await getAllTransactions(page, 10, "asc", "id");
+    setIsLoading(true)
+    const result = await getAllTransactions(page, 10, "asc", "id")
     if (result.success) {
-      setTransactions(result.transactions);
-      setPagination(result.pagination);
+      // Only admins should see all transactions
+      if (user && user.role && user.role.includes("SUPERADMIN")) {
+        setTransactions(result.transactions)
+      } else {
+        // For non-admin users, this should be empty or filtered
+        // This is just a safeguard, as non-admins shouldn't access this page
+        setTransactions([])
+      }
+      setPagination(result.pagination)
     } else {
-      setError(result.message);
+      setError(result.message)
     }
-    setIsLoading(false);
-  };
+    setIsLoading(false)
+  }
 
   useEffect(() => {
-    fetchTransactions();
-  }, []);
+    fetchTransactions()
+  }, [user])
 
   // Filter transactions based on search query and status filter
   const filteredTransactions = transactions.filter((trx) => {
     const matchesSearch =
-      trx.hiker.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      trx.paymentStatus.toLowerCase().includes(searchQuery.toLowerCase());
+      trx.hiker?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      trx.paymentStatus?.toLowerCase().includes(searchQuery.toLowerCase())
 
-    const matchesStatus = statusFilter === "all" || trx.paymentStatus === statusFilter;
+    const matchesStatus = statusFilter === "all" || trx.paymentStatus === statusFilter
 
-    return matchesSearch && matchesStatus;
-  });
+    return matchesSearch && matchesStatus
+  })
 
   // Handle view details
   const handleViewDetails = (trx) => {
-    setSelectedTransaction(trx);
-    setShowModal(true);
-  };
+    setSelectedTransaction(trx)
+    setShowModal(true)
+  }
 
   // Handle close modal
   const handleCloseModal = () => {
-    setShowModal(false);
-  };
+    setShowModal(false)
+  }
+
+  // Handle update status
+  const handleUpdateStatus = (trx) => {
+    setSelectedTransaction(trx)
+    setShowStatusModal(true)
+  }
+
+  // Handle close status modal
+  const handleCloseStatusModal = () => {
+    setShowStatusModal(false)
+    setStatusUpdateSuccess(null)
+  }
+
+  // Handle status update
+  const handleStatusUpdate = async (isUp, isDown) => {
+    if (!selectedTransaction) return
+
+    setIsUpdating(true)
+    try {
+      const result = await updateTransactionStatus(selectedTransaction.transactionId, {
+        isUp,
+        isDown,
+      })
+
+      if (result.success) {
+        setStatusUpdateSuccess(
+          `Status updated successfully: ${isUp ? "Up" : "Not Up"}, ${isDown ? "Down" : "Not Down"}`,
+        )
+
+        // Update the transaction in the local state
+        setTransactions((prevTransactions) =>
+          prevTransactions.map((trx) =>
+            trx.transactionId === selectedTransaction.transactionId ? { ...trx, isUp, isDown } : trx,
+          ),
+        )
+
+        // Update the selected transaction
+        setSelectedTransaction({
+          ...selectedTransaction,
+          isUp,
+          isDown,
+        })
+      } else {
+        setError(result.message || "Failed to update status")
+      }
+    } catch (err) {
+      console.error("Error updating status:", err)
+      setError("An error occurred while updating status")
+    } finally {
+      setIsUpdating(false)
+    }
+  }
 
   if (isLoading) {
-    return <div className="text-center my-5">Loading...</div>;
+    return (
+      <div className="text-center my-5">
+        <Loading />
+      </div>
+    )
   }
 
   if (error) {
-    return <div className="alert alert-danger text-center my-5">{error}</div>;
+    return <div className="alert alert-danger text-center my-5">{error}</div>
   }
 
   return (
     <div className="container mt-4">
-      <h2 className="text-center mb-3">Recent Transactions</h2>
+      <h2 className="text-center mb-3">All Transactions</h2>
 
       {/* Search Bar and Status Filter */}
       <div className="input-group mb-3">
@@ -76,8 +147,8 @@ const TransactionsTable = () => {
           placeholder="Search by hiker name or status..."
           value={searchQuery}
           onChange={(e) => {
-            setSearchQuery(e.target.value);
-            setPagination((prev) => ({ ...prev, page: 1 })); // Reset to page 1 on search
+            setSearchQuery(e.target.value)
+            setPagination((prev) => ({ ...prev, page: 1 })) // Reset to page 1 on search
           }}
         />
         <button
@@ -117,7 +188,8 @@ const TransactionsTable = () => {
               <th>Amount</th>
               <th>Date</th>
               <th>Status</th>
-              <th>Action</th>
+              <th>Up/Down</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -125,8 +197,8 @@ const TransactionsTable = () => {
               filteredTransactions.map((trx) => (
                 <tr key={trx.transactionId}>
                   <td>{trx.transactionId.substring(0, 8)}...</td>
-                  <td>{trx.hiker.name}</td>
-                  <td>Rp {trx.price.toLocaleString()}</td>
+                  <td>{trx.hiker?.name}</td>
+                  <td>Rp {trx.price?.toLocaleString()}</td>
                   <td>{new Date(trx.transactionDate).toLocaleDateString()}</td>
                   <td>
                     <span
@@ -134,26 +206,34 @@ const TransactionsTable = () => {
                         trx.paymentStatus === "PAID"
                           ? "bg-success"
                           : trx.paymentStatus === "ORDERED"
-                          ? "bg-warning"
-                          : "bg-secondary"
+                            ? "bg-warning"
+                            : "bg-secondary"
                       }`}
                     >
                       {trx.paymentStatus}
                     </span>
                   </td>
                   <td>
-                    <button
-                      className="btn btn-info btn-sm"
-                      onClick={() => handleViewDetails(trx)}
-                    >
+                    <span className={`badge ${trx.isUp ? "bg-success" : "bg-secondary"} me-1`}>
+                      {trx.isUp ? "Up" : "Not Up"}
+                    </span>
+                    <span className={`badge ${trx.isDown ? "bg-info" : "bg-secondary"}`}>
+                      {trx.isDown ? "Down" : "Not Down"}
+                    </span>
+                  </td>
+                  <td>
+                    <button className="btn btn-info btn-sm me-2" onClick={() => handleViewDetails(trx)}>
                       <i className="bi bi-eye"></i>
+                    </button>
+                    <button className="btn btn-primary btn-sm" onClick={() => handleUpdateStatus(trx)}>
+                      <i className="bi bi-pencil"></i>
                     </button>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan="6" className="text-center">
+                <td colSpan="7" className="text-center">
                   No transactions found
                 </td>
               </tr>
@@ -205,12 +285,36 @@ const TransactionsTable = () => {
               <div className="modal-body">
                 {selectedTransaction && (
                   <div>
-                    <p><strong>ID:</strong> {selectedTransaction.transactionId}</p>
-                    <p><strong>Hiker:</strong> {selectedTransaction.hiker.name}</p>
-                    <p><strong>Amount:</strong> Rp {selectedTransaction.price.toLocaleString()}</p>
-                    <p><strong>Date:</strong> {new Date(selectedTransaction.transactionDate).toLocaleDateString()}</p>
-                    <p><strong>Status:</strong> {selectedTransaction.paymentStatus}</p>
-                    <p><strong>Route:</strong> {selectedTransaction.route}</p>
+                    <p>
+                      <strong>ID:</strong> {selectedTransaction.transactionId}
+                    </p>
+                    <p>
+                      <strong>Hiker:</strong> {selectedTransaction.hiker?.name}
+                    </p>
+                    <p>
+                      <strong>Amount:</strong> Rp {selectedTransaction.price?.toLocaleString()}
+                    </p>
+                    <p>
+                      <strong>Date:</strong> {new Date(selectedTransaction.transactionDate).toLocaleDateString()}
+                    </p>
+                    <p>
+                      <strong>Status:</strong> {selectedTransaction.paymentStatus}
+                    </p>
+                    <p>
+                      <strong>Route:</strong> {selectedTransaction.route}
+                    </p>
+                    <p>
+                      <strong>Up Status:</strong>{" "}
+                      <span className={`badge ${selectedTransaction.isUp ? "bg-success" : "bg-secondary"}`}>
+                        {selectedTransaction.isUp ? "Up" : "Not Up"}
+                      </span>
+                    </p>
+                    <p>
+                      <strong>Down Status:</strong>{" "}
+                      <span className={`badge ${selectedTransaction.isDown ? "bg-info" : "bg-secondary"}`}>
+                        {selectedTransaction.isDown ? "Down" : "Not Down"}
+                      </span>
+                    </p>
                   </div>
                 )}
               </div>
@@ -223,8 +327,85 @@ const TransactionsTable = () => {
           </div>
         </div>
       )}
-    </div>
-  );
-};
 
-export default TransactionsTable;
+      {/* Modal for Status Update */}
+      {showStatusModal && (
+        <div className="modal fade show" style={{ display: "block", backgroundColor: "rgba(0, 0, 0, 0.5)" }}>
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Update Hiker Status</h5>
+                <button type="button" className="btn-close" onClick={handleCloseStatusModal}></button>
+              </div>
+              <div className="modal-body">
+                {selectedTransaction && (
+                  <div>
+                    <p>
+                      <strong>Transaction ID:</strong> {selectedTransaction.transactionId}
+                    </p>
+                    <p>
+                      <strong>Hiker:</strong> {selectedTransaction.hiker?.name}
+                    </p>
+                    <p>
+                      <strong>Mountain:</strong> {selectedTransaction.mountain?.name}
+                    </p>
+
+                    <div className="alert alert-info">
+                      <p className="mb-0">
+                        <strong>Current Status:</strong>{" "}
+                        <span className={`badge ${selectedTransaction.isUp ? "bg-success" : "bg-secondary"} me-2`}>
+                          {selectedTransaction.isUp ? "Up" : "Not Up"}
+                        </span>
+                        <span className={`badge ${selectedTransaction.isDown ? "bg-info" : "bg-secondary"}`}>
+                          {selectedTransaction.isDown ? "Down" : "Not Down"}
+                        </span>
+                      </p>
+                    </div>
+
+                    {statusUpdateSuccess && <div className="alert alert-success">{statusUpdateSuccess}</div>}
+
+                    <div className="mt-4">
+                      <h6>Update Status:</h6>
+                      <div className="d-flex flex-column gap-3 mt-3">
+                        <button
+                          className="btn btn-success"
+                          onClick={() => handleStatusUpdate(true, false)}
+                          disabled={isUpdating || (selectedTransaction.isUp && !selectedTransaction.isDown)}
+                        >
+                          {isUpdating ? <Loading /> : "Mark as Up (Started Climbing)"}
+                        </button>
+
+                        <button
+                          className="btn btn-info"
+                          onClick={() => handleStatusUpdate(true, true)}
+                          disabled={isUpdating || !selectedTransaction.isUp}
+                        >
+                          {isUpdating ? <Loading /> : "Mark as Down (Finished Climbing)"}
+                        </button>
+
+                        <button
+                          className="btn btn-secondary"
+                          onClick={() => handleStatusUpdate(false, false)}
+                          disabled={isUpdating}
+                        >
+                          {isUpdating ? <Loading /> : "Reset Status"}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={handleCloseStatusModal}>
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+export default TransactionsTable

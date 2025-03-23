@@ -1,45 +1,28 @@
 import api from "./axiosInstance";
+import { jwtDecode } from "jwt-decode";
+// import { useDispatch } from "react-redux";
+// import { loginSuccess } from "../redux/authSlice";
 
 // Login user
 export const loginUser = async (email, password) => {
   try {
-    // Make sure we're sending the exact format the server expects
-    const requestData = {
+    const response = await api.post("/auth/login", {
       email,
       password,
-    };
+    });
 
-    console.log("Login request data:", requestData);
-
-    const response = await api.post("/auth/login", requestData);
-
-    if (response.data.status === 200) {
-      const { data } = response.data;
-
-      // Store token and user data
-      localStorage.setItem("token", data.token);
-      localStorage.setItem(
-        "user",
-        JSON.stringify({
-          id: data.userAccountId,
-          loggedInId: data.userLoggedInId,
-          name: data.name,
-          email: data.name, // Using email as name based on the response
-          role: data.role,
-        })
-      );
-
-      // Return the user data and token
+    const userCredential = jwtDecode(response.data.data.token);
+    if (response.status === 200) {
       return {
         success: true,
         userData: {
-          id: data.userAccountId,
-          loggedInId: data.userLoggedInId,
-          name: data.name,
-          email: data.name, // Using email as name based on the response
-          role: data.role,
+          id: userCredential.userAccountId,
+          loggedInId: userCredential.userLoggedInId,
+          name: userCredential.name,
+          email: userCredential.email,
+          role: userCredential.roles,
         },
-        token: data.token,
+        token: response.data.data.token,
       };
     } else {
       return {
@@ -49,13 +32,11 @@ export const loginUser = async (email, password) => {
     }
   } catch (error) {
     console.error("Login error:", error);
-
-    // Provide more detailed error information
     return {
       success: false,
-      message: error.response?.data?.message || error.message || "Server error",
-      status: error.response?.status,
-      error: error,
+      message: error.response?.data?.message || "An error occurred. Please try again.",
+      status: error.response?.status || 500,
+      error: error.response?.data,
     };
   }
 };
@@ -64,16 +45,26 @@ export const loginUser = async (email, password) => {
 export const registerUser = async (name, phone, email, password) => {
   try {
     // Make sure we're sending the exact format the server expects
+    var formData = new FormData();
     const requestData = {
-      name,
-      phone,
-      email,
-      password,
+      name: name,
+      phone: phone,
+      email: email,
+      password: password,
     };
+    formData.append("hiker", JSON.stringify(requestData));
 
     console.log("Register request data:", requestData);
+    const headers = {
+      "Content-Type": 'Content-Type": "multipart/form-data',
+    };
 
-    const response = await api.post("/auth/register", requestData);
+    const response = await api({
+      url: "/auth/register",
+      method: "post",
+      data: formData,
+      headers: headers,
+    });
 
     if (response.data.status === 201) {
       return {

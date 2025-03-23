@@ -52,3 +52,28 @@ export const getRangerById = async (id) => {
     };
   }
 };
+
+// Get ranger by mountain ID
+export const getRangerByMountainId = async (mountainId) => {
+  try {
+    const response = await api.get(`/rangers/ranger-mountain/${mountainId}`);
+
+    if (response.data.status === 200) {
+      return {
+        success: true,
+        ranger: response.data.data,
+      };
+    } else {
+      return {
+        success: false,
+        message: response.data.message || "Failed to fetch ranger for this mountain",
+      };
+    }
+  } catch (error) {
+    console.error(`Error fetching ranger for mountain ID ${mountainId}:`, error);
+    return {
+      success: false,
+      message: error.response?.data?.message || "Failed to fetch ranger for this mountain",
+    };
+  }
+};

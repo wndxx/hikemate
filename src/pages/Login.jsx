@@ -52,18 +52,18 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     if (!validateForm()) return;
-
+  
     setIsLoading(true);
-
+  
     try {
       const result = await loginUser(formData.email, formData.password);
-
+  
       if (result.success) {
         // Store user data in context
         login(result.userData, result.token);
-
+  
         // Redirect based on role
         if (result.userData.role.includes("SUPERADMIN")) {
           navigate("/dashboard");
@@ -71,7 +71,7 @@ const Login = () => {
           navigate("/");
         }
       } else {
-        // Show more detailed error message
+        // Show detailed error message
         const errorMessage = result.message || "Login failed. Please check your credentials.";
         console.error("Login failed:", result);
         alert(errorMessage);

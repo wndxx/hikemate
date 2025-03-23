@@ -1,5 +1,3 @@
-"use client";
-
 import { useState } from "react";
 import { registerUser } from "../api/auth";
 import Layout from "../components/layout/Layout";
@@ -70,19 +68,18 @@ const Register = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     if (!validateForm()) return;
-
+  
     setIsLoading(true);
-
+  
     try {
       const result = await registerUser(formData.name, formData.phone, formData.email, formData.password);
-
+  
       if (result.success) {
         alert("Registration successful! You can now log in.");
         navigate("/login");
       } else {
-        // Show more detailed error message
         const errorMessage = result.message || "Registration failed. Please try again.";
         console.error("Registration failed:", result);
         alert(errorMessage);

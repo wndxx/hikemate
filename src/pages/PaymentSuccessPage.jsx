@@ -12,8 +12,36 @@ const PaymentSuccessPage = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
 
+  const lastTransactionId = localStorage.getItem("lastTransactionId")
+
   // Get transaction ID from URL query parameters
   const transactionId = searchParams.get("order_id") || searchParams.get("transaction_id")
+
+  useEffect(() => {
+    // If we have a transaction ID in localStorage but not in the URL, use it
+    if (!transactionId && lastTransactionId) {
+      const fetchTransaction = async () => {
+        setIsLoading(true)
+        try {
+          const result = await getTransactionById(lastTransactionId)
+          if (result.success) {
+            setTransaction(result.transaction)
+            // Clear the localStorage after successful fetch
+            localStorage.removeItem("lastTransactionId")
+          } else {
+            setError(result.message || "Failed to fetch transaction details")
+          }
+        } catch (error) {
+          console.error("Error fetching transaction:", error)
+          setError("An error occurred while fetching transaction details")
+        } finally {
+          setIsLoading(false)
+        }
+      }
+
+      fetchTransaction()
+    }
+  }, [transactionId, lastTransactionId])
 
   useEffect(() => {
     const fetchTransaction = async () => {

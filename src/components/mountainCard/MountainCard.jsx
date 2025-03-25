@@ -85,7 +85,7 @@ const MountainCard = ({ mountain }) => {
               fontSize: "1.2rem",
             }}
           >
-            No Image Available
+            Tidak ada gambar tersedia
           </div>
         )}
         <span className={`position-absolute top-0 end-0 m-2 badge bg-${statusColor}`}>{status}</span>
@@ -95,7 +95,7 @@ const MountainCard = ({ mountain }) => {
             className="position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center"
             style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
           >
-            <span className="badge bg-danger fs-5 p-2">CLOSED</span>
+            <span className="badge bg-danger fs-5 p-2">TUTUP</span>
           </div>
         )}
       </div>
@@ -114,10 +114,10 @@ const MountainCard = ({ mountain }) => {
         <div className="d-flex justify-content-between align-items-center mt-3">
           <div>
             <span className="h5 mb-0">{formatPrice(price)}</span>
-            <small className="text-muted d-block">per person</small>
+            <small className="text-muted d-block">per orang</small>
           </div>
           <Button variant="primary" onClick={handleViewDetails}>
-            View
+            Lihat
           </Button>
         </div>
       </div>

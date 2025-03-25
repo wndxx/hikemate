@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Link } from "react-router-dom"
+import { Link, useLocation } from "react-router-dom"
 import Layout from "../components/layout/Layout"
 import Loading from "../components/loading/Loading"
 import { getUserTransactions } from "../api/transactions"
@@ -13,6 +13,23 @@ const MyBookingPage = () => {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
   const [activeTab, setActiveTab] = useState("active") // active, completed, cancelled
+  const [selectedTransaction, setSelectedTransaction] = useState(null)
+  const [showModal, setShowModal] = useState(false)
+
+  const location = useLocation()
+  const [showPaymentSuccessAlert, setShowPaymentSuccessAlert] = useState(false)
+
+  useEffect(() => {
+    // Check if we're coming from a payment redirect
+    if (location.state?.fromPayment) {
+      setShowPaymentSuccessAlert(true)
+      // Clear the state after 5 seconds
+      const timer = setTimeout(() => {
+        setShowPaymentSuccessAlert(false)
+      }, 5000)
+      return () => clearTimeout(timer)
+    }
+  }, [location])
 
   useEffect(() => {
     fetchTransactions()
@@ -23,16 +40,13 @@ const MyBookingPage = () => {
     try {
       const result = await getUserTransactions()
       if (result.success) {
-        console.log("User transactions:", result.transactions)
         setTransactions(result.transactions || [])
       } else {
         console.warn("Warning fetching transactions:", result.message)
-        // Don't set error, just set empty transactions
         setTransactions([])
       }
     } catch (error) {
       console.error("Error fetching transactions:", error)
-      // Don't set error, just set empty transactions
       setTransactions([])
     } finally {
       setIsLoading(false)
@@ -73,10 +87,28 @@ const MyBookingPage = () => {
     window.open(paymentUrl, "_blank")
   }
 
+  // Handle view details
+  const handleViewDetails = (trx) => {
+    setSelectedTransaction(trx)
+    setShowModal(true)
+  }
+
+  // Handle close modal
+  const handleCloseModal = () => {
+    setShowModal(false)
+  }
+
   return (
     <Layout>
       <div className="container py-5">
         <h1 className="text-center mb-4">My Bookings</h1>
+        {showPaymentSuccessAlert && (
+          <div className="alert alert-info alert-dismissible fade show mb-4" role="alert">
+            <i className="bi bi-info-circle me-2"></i>
+            Your payment is being processed. Once completed, your booking will be updated automatically.
+            <button type="button" className="btn-close" onClick={() => setShowPaymentSuccessAlert(false)}></button>
+          </div>
+        )}
 
         {error && <div className="alert alert-danger mb-4">{error}</div>}
 
@@ -165,16 +197,22 @@ const MyBookingPage = () => {
                       </p>
                     </div>
 
-                    {transaction.paymentStatus === "ORDERED" && transaction.paymentUrl && (
-                      <div className="d-grid">
+                    <div className="d-flex justify-content-between mt-3">
+                      {transaction.paymentStatus === "ORDERED" && transaction.paymentUrl && (
                         <button
                           className="btn btn-primary"
                           onClick={() => handleContinuePayment(transaction.paymentUrl)}
                         >
                           <i className="bi bi-credit-card me-2"></i>Continue Payment
                         </button>
-                      </div>
-                    )}
+                      )}
+                      <button 
+                        className="btn btn-info"
+                        onClick={() => handleViewDetails(transaction)}
+                      >
+                        <i className="bi bi-eye me-2"></i>View Details
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -192,10 +230,93 @@ const MyBookingPage = () => {
             </div>
           </div>
         )}
+
+        {/* Modal for Transaction Details */}
+        {showModal && (
+          <div className="modal fade show" style={{ display: "block", backgroundColor: "rgba(0, 0, 0, 0.5)" }}>
+            <div className="modal-dialog modal-lg">
+              <div className="modal-content">
+                <div className="modal-header">
+                  <h5 className="modal-title">Booking Details</h5>
+                  <button type="button" className="btn-close" onClick={handleCloseModal}></button>
+                </div>
+                <div className="modal-body">
+                  {selectedTransaction && (
+                    <div className="row">
+                      <div className="col-md-6">
+                        <h6>Transaction Information</h6>
+                        <p><strong>ID:</strong> {selectedTransaction.transactionId}</p>
+                        <p><strong>Status:</strong> 
+                          <span className={`badge ${
+                            selectedTransaction.paymentStatus === "PAID"
+                              ? "bg-success"
+                              : selectedTransaction.paymentStatus === "ORDERED"
+                                ? "bg-warning"
+                                : "bg-danger"
+                          } ms-2`}>
+                            {selectedTransaction.paymentStatus}
+                          </span>
+                        </p>
+                        <p><strong>Date:</strong> {formatDate(selectedTransaction.transactionDate)}</p>
+                        <p><strong>Amount:</strong> {formatPrice(selectedTransaction.price)}</p>
+                        
+                        <h6 className="mt-4">Climbing Information</h6>
+                        <p><strong>Route:</strong> {selectedTransaction.route}</p>
+                        <p><strong>Start Date:</strong> {formatDate(selectedTransaction.startDate)}</p>
+                        <p><strong>End Date:</strong> {formatDate(selectedTransaction.endDate)}</p>
+                        <p><strong>Up Status:</strong> 
+                          <span className={`badge ${selectedTransaction.isUp ? "bg-success" : "bg-secondary"} ms-2`}>
+                            {selectedTransaction.isUp ? "Up" : "Not Up"}
+                          </span>
+                        </p>
+                        <p><strong>Down Status:</strong> 
+                          <span className={`badge ${selectedTransaction.isDown ? "bg-info" : "bg-secondary"} ms-2`}>
+                            {selectedTransaction.isDown ? "Down" : "Not Down"}
+                          </span>
+                        </p>
+                      </div>
+                      <div className="col-md-6">
+                        <h6>Mountain Information</h6>
+                        {selectedTransaction.mountain?.mountainCoverUrl && (
+                          <img
+                            src={selectedTransaction.mountain.mountainCoverUrl}
+                            alt={selectedTransaction.mountain.name}
+                            className="img-fluid rounded mb-3"
+                          />
+                        )}
+                        <p><strong>Mountain:</strong> {selectedTransaction.mountain?.name}</p>
+                        <p><strong>Location:</strong> {selectedTransaction.mountain?.location}</p>
+                        <p><strong>Difficulty:</strong> {selectedTransaction.mountain?.difficulty}</p>
+                        
+                        {selectedTransaction.paymentStatus === "ORDERED" && selectedTransaction.paymentUrl && (
+                          <div className="mt-4">
+                            <button
+                              className="btn btn-primary w-100"
+                              onClick={() => {
+                                handleCloseModal()
+                                handleContinuePayment(selectedTransaction.paymentUrl)
+                              }}
+                            >
+                              <i className="bi bi-credit-card me-2"></i>Continue Payment
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="modal-footer">
+                  <button type="button" className="btn btn-secondary" onClick={handleCloseModal}>
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </Layout>
   )
 }
 
 export default MyBookingPage
-

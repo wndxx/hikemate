@@ -61,7 +61,7 @@ export const getRangerByMountainId = async (mountainId) => {
     if (response.data.status === 200) {
       return {
         success: true,
-        ranger: response.data.data,
+        ranger: response.data.data, // This directly returns the ranger object
       };
     } else {
       return {
@@ -74,6 +74,31 @@ export const getRangerByMountainId = async (mountainId) => {
     return {
       success: false,
       message: error.response?.data?.message || "Failed to fetch ranger for this mountain",
+    };
+  }
+};
+
+// Delete ranger by ID
+export const deleteRanger = async (id) => {
+  try {
+    const response = await api.delete(`/rangers/${id}`);
+
+    if (response.data.status === 200) {
+      return {
+        success: true,
+        message: response.data.message || "Ranger deleted successfully",
+      };
+    } else {
+      return {
+        success: false,
+        message: response.data.message || "Failed to delete ranger",
+      };
+    }
+  } catch (error) {
+    console.error(`Error deleting ranger with ID ${id}:`, error);
+    return {
+      success: false,
+      message: error.response?.data?.message || "Failed to delete ranger",
     };
   }
 };

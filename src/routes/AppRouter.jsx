@@ -14,6 +14,16 @@ import MyBookingPage from "../pages/MyBookingPage"
 import MountainPage from "../pages/MountainPage"
 import RangersTable from "../pages/RangersTable"
 import RangerDetail from "../pages/RangerDetail"
+import MountainsTable from "../pages/MountainsTable"
+import CreateMountain from "../pages/CreateMountain"
+import EditMountain from "../pages/EditMountain"
+import ViewMountain from "../pages/ViewMountain"
+import RoutesManagement from "../pages/routes/RoutesManagement"
+import CreateRoute from "../pages/routes/CreateRoute"
+import MountainRoutesManagement from "../pages/mountainRoutes/MountainRoutesManagement"
+import CreateMountainRoute from "../pages/mountainRoutes/CreateMountainRoute"
+import CreateTransaction from "../pages/transactions/CreateTransaction"
+import MyBookings from "../pages/transactions/MyBooking"
 
 const AppRouter = () => {
   return (
@@ -50,6 +60,92 @@ const AppRouter = () => {
         element={
           <PrivateRoute requiredRole="SUPERADMIN">
             <Dashboard />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/dashboard/mountains"
+        element={
+          <PrivateRoute requiredRole="SUPERADMIN">
+            <MountainsTable />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/dashboard/mountains/create"
+        element={
+          <PrivateRoute requiredRole="SUPERADMIN">
+            <CreateMountain />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/dashboard/mountains/edit/:id"
+        element={
+          <PrivateRoute requiredRole="SUPERADMIN">
+            <EditMountain />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/dashboard/mountains/view/:id"
+        element={
+          <PrivateRoute requiredRole="SUPERADMIN">
+            <ViewMountain />
+          </PrivateRoute>
+        }
+      />
+
+      {/* Routes Management */}
+      <Route
+        path="/dashboard/routes"
+        element={
+          <PrivateRoute requiredRole="SUPERADMIN">
+            <RoutesManagement />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/dashboard/routes/create"
+        element={
+          <PrivateRoute requiredRole="SUPERADMIN">
+            <CreateRoute />
+          </PrivateRoute>
+        }
+      />
+
+      {/* Mountain Routes Management */}
+      <Route
+        path="/dashboard/mountain-routes"
+        element={
+          <PrivateRoute requiredRole="SUPERADMIN">
+            <MountainRoutesManagement />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/dashboard/mountain-routes/create"
+        element={
+          <PrivateRoute requiredRole="SUPERADMIN">
+            <CreateMountainRoute />
+          </PrivateRoute>
+        }
+      />
+
+      {/* Hiker Routes */}
+      <Route
+        path="/book/:mountainId"
+        element={
+          <PrivateRoute requiredRole="HIKER">
+            <CreateTransaction />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/my-bookings"
+        element={
+          <PrivateRoute requiredRole="HIKER">
+            <MyBookings />
           </PrivateRoute>
         }
       />

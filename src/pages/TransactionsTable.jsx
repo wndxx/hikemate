@@ -24,25 +24,50 @@ const TransactionsTable = () => {
   const [showModal, setShowModal] = useState(false)
   const [showStatusModal, setShowStatusModal] = useState(false)
   const [statusUpdateSuccess, setStatusUpdateSuccess] = useState(null)
+  const [serverUnavailable, setServerUnavailable] = useState(false)
 
   // Fetch transactions with pagination
   const fetchTransactions = async (page = 1) => {
     setIsLoading(true)
-    const result = await getAllTransactions(page, 10, "asc", "id")
-    if (result.success) {
-      // Only admins should see all transactions
-      if (user && user.role && user.role.includes("SUPERADMIN")) {
-        setTransactions(result.transactions)
+    setError(null)
+
+    try {
+      const result = await getAllTransactions(page, 10, "asc", "id")
+      if (result.success) {
+        // Only admins should see all transactions
+        if (user && user.role && user.role.includes("SUPERADMIN")) {
+          setTransactions(result.transactions || [])
+        } else {
+          // For non-admin users, this should be empty or filtered
+          // This is just a safeguard, as non-admins shouldn't access this page
+          setTransactions([])
+        }
+        setPagination(
+          result.pagination || {
+            page: 1,
+            totalPages: 1,
+            totalElements: 0,
+            hasNext: false,
+            hasPrevious: false,
+          },
+        )
       } else {
-        // For non-admin users, this should be empty or filtered
-        // This is just a safeguard, as non-admins shouldn't access this page
+        setError(result.message || "Failed to fetch transactions")
         setTransactions([])
       }
-      setPagination(result.pagination)
-    } else {
-      setError(result.message)
+    } catch (error) {
+      console.error("Error fetching transactions:", error)
+      setError("An error occurred while fetching transactions")
+      setTransactions([])
+
+      // Check if this is a network error
+      if (error.message && error.message.includes("Network Error")) {
+        setServerUnavailable(true)
+        setError("The server is currently unavailable. Please try again later.")
+      }
+    } finally {
+      setIsLoading(false)
     }
-    setIsLoading(false)
   }
 
   useEffect(() => {
@@ -69,12 +94,6 @@ const TransactionsTable = () => {
   // Handle close modal
   const handleCloseModal = () => {
     setShowModal(false)
-  }
-
-  // Handle update status
-  const handleUpdateStatus = (trx) => {
-    setSelectedTransaction(trx)
-    setShowStatusModal(true)
   }
 
   // Handle close status modal
@@ -118,9 +137,28 @@ const TransactionsTable = () => {
     } catch (err) {
       console.error("Error updating status:", err)
       setError("An error occurred while updating status")
+
+      // Check if this is a network error
+      if (err.message && err.message.includes("Network Error")) {
+        setServerUnavailable(true)
+        setError("The server is currently unavailable. Please try again later.")
+      }
     } finally {
       setIsUpdating(false)
     }
+  }
+
+  if (serverUnavailable) {
+    return (
+      <div className="container mt-4">
+        <div className="alert alert-danger">
+          <h4 className="alert-heading">Server Unavailable</h4>
+          <p>The server is currently unavailable. Please try again later.</p>
+          <hr />
+          <p className="mb-0">This could be due to maintenance or network issues.</p>
+        </div>
+      </div>
+    )
   }
 
   if (isLoading) {
@@ -131,13 +169,16 @@ const TransactionsTable = () => {
     )
   }
 
-  if (error) {
-    return <div className="alert alert-danger text-center my-5">{error}</div>
-  }
-
   return (
     <div className="container mt-4">
       <h2 className="text-center mb-3">All Transactions</h2>
+
+      {error && (
+        <div className="alert alert-warning mb-3">
+          <i className="bi bi-exclamation-triangle me-2"></i>
+          {error}
+        </div>
+      )}
 
       {/* Search Bar and Status Filter */}
       <div className="input-group mb-3">
@@ -225,16 +266,13 @@ const TransactionsTable = () => {
                     <button className="btn btn-info btn-sm me-2" onClick={() => handleViewDetails(trx)}>
                       <i className="bi bi-eye"></i>
                     </button>
-                    <button className="btn btn-primary btn-sm" onClick={() => handleUpdateStatus(trx)}>
-                      <i className="bi bi-pencil"></i>
-                    </button>
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
                 <td colSpan="7" className="text-center">
-                  No transactions found
+                  {error ? "Error loading transactions" : "No transactions found"}
                 </td>
               </tr>
             )}
@@ -243,35 +281,37 @@ const TransactionsTable = () => {
       </div>
 
       {/* Pagination */}
-      <nav>
-        <ul className="pagination justify-content-center">
-          <li className={`page-item ${!pagination.hasPrevious ? "disabled" : ""}`}>
-            <button
-              className="page-link"
-              onClick={() => fetchTransactions(pagination.page - 1)}
-              disabled={!pagination.hasPrevious}
-            >
-              &lt;
-            </button>
-          </li>
-          {[...Array(pagination.totalPages)].map((_, index) => (
-            <li key={index} className={`page-item ${pagination.page === index + 1 ? "active" : ""}`}>
-              <button className="page-link" onClick={() => fetchTransactions(index + 1)}>
-                {index + 1}
+      {pagination.totalPages > 1 && (
+        <nav>
+          <ul className="pagination justify-content-center">
+            <li className={`page-item ${!pagination.hasPrevious ? "disabled" : ""}`}>
+              <button
+                className="page-link"
+                onClick={() => fetchTransactions(pagination.page - 1)}
+                disabled={!pagination.hasPrevious}
+              >
+                &lt;
               </button>
             </li>
-          ))}
-          <li className={`page-item ${!pagination.hasNext ? "disabled" : ""}`}>
-            <button
-              className="page-link"
-              onClick={() => fetchTransactions(pagination.page + 1)}
-              disabled={!pagination.hasNext}
-            >
-              &gt;
-            </button>
-          </li>
-        </ul>
-      </nav>
+            {[...Array(pagination.totalPages)].map((_, index) => (
+              <li key={index} className={`page-item ${pagination.page === index + 1 ? "active" : ""}`}>
+                <button className="page-link" onClick={() => fetchTransactions(index + 1)}>
+                  {index + 1}
+                </button>
+              </li>
+            ))}
+            <li className={`page-item ${!pagination.hasNext ? "disabled" : ""}`}>
+              <button
+                className="page-link"
+                onClick={() => fetchTransactions(pagination.page + 1)}
+                disabled={!pagination.hasNext}
+              >
+                &gt;
+              </button>
+            </li>
+          </ul>
+        </nav>
+      )}
 
       {/* Modal for Transaction Details */}
       {showModal && (

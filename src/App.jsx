@@ -5,6 +5,7 @@ import store from "./store/store";
 import { AuthProvider } from "./context/AuthContext";
 import "bootstrap-icons/font/bootstrap-icons.css";
 
+
 function App() {
   return (
     <Provider store={store}>

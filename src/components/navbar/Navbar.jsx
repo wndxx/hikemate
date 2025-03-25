@@ -1,5 +1,3 @@
-"use client";
-
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
@@ -12,7 +10,7 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+    <nav className="navbar navbar-expand-lg navbar-dark sticky-top" style={{ backgroundColor: "#254336" }}>
       <div className="container">
         <Link className="navbar-brand" to="/">
           <h1 className="h4 mb-0">HikeMate</h1>
@@ -31,7 +29,7 @@ const Navbar = () => {
             </li>
             <li className="nav-item">
               <Link className={`nav-link ${location.pathname === "/mountains" ? "active" : ""}`} to="/mountains">
-                Mountains
+                Gunung
               </Link>
             </li>
 
@@ -54,12 +52,12 @@ const Navbar = () => {
                   <ul className="dropdown-menu dropdown-menu-end" aria-labelledby="profileDropdown">
                     <li>
                       <Link className={`dropdown-item ${location.pathname === "/profile" ? "active" : ""}`} to="/profile">
-                        <i className="bi bi-pencil me-2"></i> Edit Profile
+                        <i className="bi bi-pencil me-2"></i> Edit Profil
                       </Link>
                     </li>
                     <li>
                       <Link className={`dropdown-item ${location.pathname === "/my-booking" ? "active" : ""}`} to="/my-booking">
-                        <i className="bi bi-journal-check me-2"></i> My Booking
+                        <i className="bi bi-journal-check me-2"></i> Bookingan ku
                       </Link>
                     </li>
                     <li>

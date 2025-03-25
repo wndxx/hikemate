@@ -25,7 +25,7 @@ const TransactionPage = () => {
     mountainId: "",
     startDate: "",
     endDate: "",
-    routeId: "978fdd5f-b53d-4f6d-8e36-6c0a3586eeb0", // Default to Jalur Utama
+    routeId: "",
   })
 
   // UI states
@@ -33,6 +33,7 @@ const TransactionPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [error, setError] = useState(null)
   const [showConfirmationModal, setShowConfirmationModal] = useState(false)
+  const [apiUnavailable, setApiUnavailable] = useState(false)
 
   // Fetch mountain data and ranger data, then set up form data
   useEffect(() => {
@@ -49,8 +50,13 @@ const TransactionPage = () => {
 
         setMountain(mountainResult.mountain)
 
-        // Hardcode the ranger ID as requested
-        const hardcodedRangerId = "db70cce1-85f8-471b-9d50-a7dcf3a9348d"
+        // Check if the mountain has ranger information
+        if (mountainResult.mountain.rangerResponse) {
+          setRanger(mountainResult.mountain.rangerResponse)
+          console.log("Found ranger in mountain data:", mountainResult.mountain.rangerResponse)
+        } else {
+          console.log("No ranger information available in mountain data")
+        }
 
         // Get user ID from token
         let userLoggedInId = ""
@@ -66,16 +72,23 @@ const TransactionPage = () => {
           }
         }
 
-        // Set initial form data with hardcoded ranger ID
+        // Set initial form data
         setFormData({
           ...formData,
           hikerId: userLoggedInId,
-          rangerId: hardcodedRangerId, // Use hardcoded ranger ID
           mountainId: mountainResult.mountain.id,
+          // Don't set rangerId here, we'll set it when ranger data is loaded
         })
       } catch (error) {
         console.error("Error fetching data:", error)
-        setError("An error occurred while fetching data")
+
+        // Check if this is a network error (API unavailable)
+        if (error.message && error.message.includes("Network Error")) {
+          setApiUnavailable(true)
+          setError("The server is currently unavailable. Please try again later.")
+        } else {
+          setError("An error occurred while fetching data")
+        }
       } finally {
         setIsLoading(false)
       }
@@ -83,6 +96,17 @@ const TransactionPage = () => {
 
     fetchData()
   }, [id, token])
+
+  // Update rangerId when ranger is loaded
+  useEffect(() => {
+    if (ranger && ranger.id) {
+      setFormData((prev) => ({
+        ...prev,
+        rangerId: ranger.id,
+      }))
+      console.log("Setting ranger ID:", ranger.id)
+    }
+  }, [ranger])
 
   // Handle form input changes
   const handleInputChange = (e) => {
@@ -103,64 +127,98 @@ const TransactionPage = () => {
     })
   }
 
-  // Handle form submission
-  const handleSubmit = (e) => {
+  // Update the formatDateForAPI function to ensure proper format
+  const formatDateForAPI = (dateString) => {
+    if (!dateString) return "";
+    
+    try {
+      const date = new Date(dateString);
+      if (isNaN(date.getTime())) return ""; // Invalid date
+      
+      // Format: yyyy-mm-dd hh:mm:ss
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      const hours = String(date.getHours()).padStart(2, "0");
+      const minutes = String(date.getMinutes()).padStart(2, "0");
+      const seconds = String(date.getSeconds()).padStart(2, "0");
+  
+      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`;
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "";
+    }
+  };
+
+  // Update the handleSubmit function to log the formatted data
+  const handleSubmit = async (e) => {
     e.preventDefault()
-
-    // Validate form
-    if (!formData.startDate || !formData.endDate) {
-      setError("Please select both start and end dates")
-      return
-    }
-
-    if (!formData.rangerId) {
-      setError("No ranger found for this mountain. Cannot proceed with booking.")
-      return
-    }
-
-    // Show confirmation modal
-    setShowConfirmationModal(true)
-  }
-
-  // Handle confirmation
-  const handleConfirmBooking = async () => {
     setIsSubmitting(true)
     setError(null)
 
     try {
-      // Ensure we have the required fields
-      if (!formData.hikerId || !formData.rangerId || !formData.mountainId) {
-        setError("Missing required user or mountain information. Please try again or contact support.")
-        setIsSubmitting(false)
-        setShowConfirmationModal(false)
-        return
+      // Format dates for API
+      const formattedData = {
+        ...formData,
+        startDate: formatDateForAPI(formData.startDate),
+        endDate: formatDateForAPI(formData.endDate),
       }
 
-      console.log("Submitting transaction with data:", formData)
+      console.log("Submitting transaction with formatted data:", formattedData)
 
-      const result = await createTransaction(formData)
+      const result = await createTransaction(formattedData)
 
       if (result.success) {
-        // Close the confirmation modal
         setShowConfirmationModal(false)
-
         // If we have a payment URL from Midtrans, open it in a new tab
         if (result.paymentUrl) {
+          // Store transaction ID in localStorage for reference
+          if (result.transaction && result.transaction.transactionId) {
+            localStorage.setItem("lastTransactionId", result.transaction.transactionId)
+          }
+
+          // Open payment URL in new tab
           window.open(result.paymentUrl, "_blank")
+
           // Navigate to my-booking page in the current tab
-          navigate("/my-booking")
+          navigate("/my-booking", { state: { fromPayment: true } })
         } else {
           // If no payment URL, navigate to booking page
           alert("Booking successful! Transaction ID: " + result.transaction.transactionId)
           navigate("/my-booking")
         }
       } else {
-        setError(result.message || "Failed to create booking. Please try again later.")
+        // Provide detailed error information
+        console.error("Transaction creation failed:", result)
+
+        // Check for specific error messages
+        if (result.message && result.message.includes("Only users with HIKER role")) {
+          setError("Only users with HIKER role can create transactions. Please contact support.")
+        } else if (result.message && result.message.includes("API endpoint")) {
+          setError("The booking service is currently unavailable. Please try again later or contact support.")
+        } else if (result.status === 403) {
+          setError("You don't have permission to create this booking. Please contact support.")
+        } else if (result.status === 400) {
+          setError("Invalid booking data. Please check your information and try again.")
+        } else {
+          setError(result.message || "Failed to create booking. Please try again later.")
+        }
+
         setShowConfirmationModal(false)
       }
     } catch (error) {
       console.error("Error creating transaction:", error)
-      setError("An error occurred while processing your booking. Please try again later.")
+
+      // Check if this is a network error (API unavailable)
+      if (error.message && error.message.includes("Network Error")) {
+        setApiUnavailable(true)
+        setError("The server is currently unavailable. Please try again later.")
+      } else if (error.response?.status === 404) {
+        setError("The booking service endpoint could not be found. Please contact support with this information.")
+      } else {
+        setError("An error occurred while processing your booking. Please try again later.")
+      }
+
       setShowConfirmationModal(false)
     } finally {
       setIsSubmitting(false)
@@ -175,7 +233,13 @@ const TransactionPage = () => {
     const end = new Date(formData.endDate)
     const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1 // Include both start and end days
 
-    return mountain.price * days
+    return mountain.price
+  }
+
+  // Handle confirm booking
+  const handleConfirmBooking = async () => {
+    setShowConfirmationModal(false) // Close the modal
+    handleSubmit(new Event("submit")) // Trigger the form submission
   }
 
   if (isLoading) {
@@ -183,6 +247,22 @@ const TransactionPage = () => {
       <Layout>
         <div className="container mt-5 text-center">
           <Loading />
+        </div>
+      </Layout>
+    )
+  }
+
+  if (apiUnavailable) {
+    return (
+      <Layout>
+        <div className="container mt-5">
+          <div className="alert alert-danger">
+            <h4 className="alert-heading">Server Unavailable</h4>
+            <p>The server is currently unavailable. Please try again later.</p>
+          </div>
+          <button className="btn btn-secondary" onClick={() => navigate(-1)}>
+            <i className="bi bi-arrow-left me-2"></i>Back
+          </button>
         </div>
       </Layout>
     )
@@ -259,7 +339,7 @@ const TransactionPage = () => {
                           <strong>Quota Limit:</strong> {mountain?.quotaLimit} hikers
                         </p>
                         <p className="mb-0">
-                          <strong>Ranger:</strong> Using default ranger
+                          <strong>Ranger:</strong> {ranger ? ranger.name : "Loading ranger information..."}
                         </p>
                       </div>
                     </div>
@@ -317,8 +397,9 @@ const TransactionPage = () => {
                         onChange={handleInputChange}
                         required
                       >
-                        <option value="978fdd5f-b53d-4f6d-8e36-6c0a3586eeb0">Jalur Utama</option>
-                        <option value="7dd3b319-d465-4ea7-bcd7-28c0a6bee153">Jalur Alternatif</option>
+                        <option value="">Select a route</option>
+                        <option value="90dce956-796e-49ad-96f7-081d039fcc06">Jalur Utama</option>
+                        <option value="d359a1bb-ea82-4d6c-9453-f8aee9bc5358">Jalur Alternatif</option>
                       </select>
                     </div>
                   </div>
@@ -327,7 +408,7 @@ const TransactionPage = () => {
                     <button type="button" className="btn btn-secondary" onClick={() => navigate(-1)}>
                       <i className="bi bi-arrow-left me-2"></i>Back
                     </button>
-                    <button type="submit" className="btn btn-primary" disabled={isSubmitting || !formData.rangerId}>
+                    <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
                       <i className="bi bi-calendar-check me-2"></i>Book Now
                     </button>
                   </div>
@@ -364,7 +445,11 @@ const TransactionPage = () => {
                 <div className="d-flex justify-content-between mb-3">
                   <span>Route:</span>
                   <span>
-                    {formData.routeId === "978fdd5f-b53d-4f6d-8e36-6c0a3586eeb0" ? "Jalur Utama" : "Jalur Alternatif"}
+                    {formData.routeId === "3d8d76c2-27f5-4c13-bc06-3b818d1799aa"
+                      ? "Jalur Utama"
+                      : formData.routeId === "8042a96c-ee9f-4733-8348-286367eb4b47"
+                        ? "Jalur Alternatif"
+                        : "Unknown Route"}
                   </span>
                 </div>
 
@@ -416,7 +501,11 @@ const TransactionPage = () => {
                     )}
                     <p className="mb-1">
                       <strong>Route:</strong>{" "}
-                      {formData.routeId === "978fdd5f-b53d-4f6d-8e36-6c0a3586eeb0" ? "Jalur Utama" : "Jalur Alternatif"}
+                      {formData.routeId === "3d8d76c2-27f5-4c13-bc06-3b818d1799aa"
+                        ? "Jalur Utama"
+                        : formData.routeId === "8042a96c-ee9f-4733-8348-286367eb4b47"
+                          ? "Jalur Alternatif"
+                          : "Unknown Route"}
                     </p>
                     <p className="mb-0">
                       <strong>Total Price:</strong> Rp {calculateTotalPrice().toLocaleString()}
@@ -453,3 +542,4 @@ const TransactionPage = () => {
 }
 
 export default TransactionPage
+

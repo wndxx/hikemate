@@ -2,19 +2,16 @@ import { Link } from "react-router-dom";
 
 const Footer = () => {
   return (
-    <footer
-      className="bg-dark text-white py-5"
-      
-    >
+    <footer className=" text-white py-5" style={{ backgroundColor: "#6B8A7A" }}>
       <div className="container">
         <div className="row">
           <div className="col-md-4 mb-4 mb-md-0">
-            <h3 className="h5 text-primary mb-3">HikeMate</h3>
+            <h3 className="h5 text-black mb-3">HikeMate</h3>
             <p className="text-white">Your companion for safe and enjoyable hiking adventures.</p>
           </div>
 
           <div className="col-md-4 mb-4 mb-md-0">
-            <h3 className="h5 text-primary mb-3">Quick Links</h3>
+            <h3 className="h5 text-black mb-3">Quick Links</h3>
             <ul className="list-unstyled">
               <li className="mb-2">
                 <Link className="text-white text-decoration-none" to="/">
@@ -23,12 +20,7 @@ const Footer = () => {
               </li>
               <li className="mb-2">
                 <Link className="text-white text-decoration-none" to="/mountains">
-                  Mountains
-                </Link>
-              </li>
-              <li className="mb-2">
-                <Link className="text-white text-decoration-none" to="/dashboard">
-                  Dashboard
+                  Gunung
                 </Link>
               </li>
               <li className="mb-2">
@@ -40,8 +32,8 @@ const Footer = () => {
           </div>
 
           <div className="col-md-4">
-            <h3 className="h5 text-primary mb-3">Contact Us</h3>
-            <p className="text-white mb-1">Email: info@hikemate.com</p>
+            <h3 className="h5 text-black mb-3">Kontak</h3>
+            <p className="text-white mb-1">Email: hikemateapp@gmail.com</p>
             <p className="text-white">Phone: +1 (123) 456-7890</p>
           </div>
         </div>

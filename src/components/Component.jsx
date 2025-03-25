@@ -1,5 +1,3 @@
-"use client"
-
 import { Calendar, CreditCard, Home, Map, MountainSnow, Settings, Ticket, User } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"

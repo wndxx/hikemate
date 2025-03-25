@@ -1,64 +1,97 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import { getAllRangers } from "../api/rangers";
-import Loading from "../components/loading/Loading";
+import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
+import { getAllRangers, deleteRanger } from "../api/rangers"
+import Loading from "../components/loading/Loading"
+import TablePagination from "../components/pagination/TablePagination"
 
 const RangersTable = () => {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const [isLoading, setIsLoading] = useState(false);
-  const [rangers, setRangers] = useState([]);
+  const [searchQuery, setSearchQuery] = useState("")
+  const [currentPage, setCurrentPage] = useState(1)
+  const [isLoading, setIsLoading] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [rangers, setRangers] = useState([])
   const [pagination, setPagination] = useState({
     page: 1,
     totalPages: 1,
     totalElements: 0,
     hasNext: false,
     hasPrevious: false,
-  });
+  })
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [rangerToDelete, setRangerToDelete] = useState(null)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
 
-  const navigate = useNavigate();
+  const navigate = useNavigate()
 
-  // Fetch rangers on component mount and when page changes
   useEffect(() => {
-    fetchRangers();
-  }, [currentPage]);
+    fetchRangers()
+  }, [currentPage])
 
-  // Fetch rangers from API
   const fetchRangers = async (page = currentPage) => {
-    setIsLoading(true);
+    setIsLoading(true)
     try {
-      const result = await getAllRangers(page, 10);
+      const result = await getAllRangers(page, 10)
       if (result.success) {
-        setRangers(result.rangers);
-        setPagination(result.pagination);
+        setRangers(result.rangers)
+        setPagination(result.pagination)
       } else {
-        console.error("Failed to fetch rangers:", result.message);
+        console.error("Failed to fetch rangers:", result.message)
       }
     } catch (error) {
-      console.error("Error fetching rangers:", error);
+      console.error("Error fetching rangers:", error)
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
-  // Filter rangers based on search query
   const filteredRangers = rangers.filter(
-    (ranger) => ranger.name.toLowerCase().includes(searchQuery.toLowerCase()) || ranger.phoneNumber.toLowerCase().includes(searchQuery.toLowerCase()) || ranger.mountainResponse.name.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+    (ranger) =>
+      ranger.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      ranger.phoneNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      ranger.mountainResponse?.name?.toLowerCase().includes(searchQuery.toLowerCase()),
+  )
 
-  // Handle search input change
   const handleSearchChange = (e) => {
-    setSearchQuery(e.target.value);
-  };
+    setSearchQuery(e.target.value)
+  }
 
-  // Handle view detail
   const handleViewDetail = (ranger) => {
-    navigate(`/ranger/${ranger.id}`);
-  };
+    navigate(`/ranger/${ranger.id}`)
+  }
 
-  // Format date
+  const handleDeleteRanger = (ranger) => {
+    setRangerToDelete(ranger)
+    setShowDeleteModal(true)
+  }
+
+  const handleCloseDeleteModal = () => {
+    setShowDeleteModal(false)
+    setRangerToDelete(null)
+  }
+
+  const confirmDeleteRanger = async () => {
+    if (!rangerToDelete) return
+
+    setIsDeleting(true)
+    try {
+      const result = await deleteRanger(rangerToDelete.id)
+      if (result.success) {
+        setShowSuccessModal(true)
+        handleCloseDeleteModal()
+        fetchRangers()
+      } else {
+        alert(result.message || "Failed to delete ranger")
+      }
+    } catch (error) {
+      console.error("Error deleting ranger:", error)
+      alert("An error occurred while deleting the ranger")
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -66,19 +99,23 @@ const RangersTable = () => {
       day: "numeric",
       hour: "2-digit",
       minute: "2-digit",
-    });
-  };
+    })
+  }
 
   return (
     <div className="container mt-4">
       <h2 className="text-center mb-3">Rangers Management</h2>
 
-      {/* Search Bar */}
       <div className="mb-3">
-        <input type="text" className="form-control" placeholder="Search by name, phone number or mountain..." value={searchQuery} onChange={handleSearchChange} />
+        <input
+          type="text"
+          className="form-control"
+          placeholder="Search by name, phone number or mountain..."
+          value={searchQuery}
+          onChange={handleSearchChange}
+        />
       </div>
 
-      {/* Rangers Table */}
       {isLoading ? (
         <div className="text-center my-5">
           <Loading />
@@ -88,7 +125,7 @@ const RangersTable = () => {
           <table className="table table-striped table-hover">
             <thead className="table-dark">
               <tr>
-                <th>ID</th>
+                <th>No</th>
                 <th>Name</th>
                 <th>Phone Number</th>
                 <th>Mountain</th>
@@ -98,16 +135,27 @@ const RangersTable = () => {
             </thead>
             <tbody>
               {filteredRangers.length > 0 ? (
-                filteredRangers.map((ranger) => (
+                filteredRangers.map((ranger, index) => (
                   <tr key={ranger.id}>
-                    <td>{ranger.id.substring(0, 8)}...</td>
+                    <td>{index + 1 + (pagination.page - 1) * 10}</td>
                     <td>{ranger.name}</td>
                     <td>{ranger.phoneNumber}</td>
-                    <td>{ranger.mountainResponse.name}</td>
+                    <td>{ranger.mountainResponse?.name || "Not assigned"}</td>
                     <td>{formatDate(ranger.assignedAt)}</td>
                     <td>
-                      <button className="btn btn-info btn-sm" onClick={() => handleViewDetail(ranger)} title="View Details">
+                      <button
+                        className="btn btn-info btn-sm me-2"
+                        onClick={() => handleViewDetail(ranger)}
+                        title="View Details"
+                      >
                         <i className="bi bi-eye"></i>
+                      </button>
+                      <button
+                        className="btn btn-danger btn-sm"
+                        onClick={() => handleDeleteRanger(ranger)}
+                        title="Delete"
+                      >
+                        <i className="bi bi-trash"></i>
                       </button>
                     </td>
                   </tr>
@@ -124,32 +172,88 @@ const RangersTable = () => {
         </div>
       )}
 
-      {/* Pagination */}
       {pagination.totalPages > 1 && (
-        <nav>
-          <ul className="pagination justify-content-center">
-            <li className={`page-item ${!pagination.hasPrevious ? "disabled" : ""}`}>
-              <button className="page-link" onClick={() => setCurrentPage(currentPage - 1)} disabled={!pagination.hasPrevious}>
-                &lt;
-              </button>
-            </li>
-            {[...Array(pagination.totalPages)].map((_, index) => (
-              <li key={index} className={`page-item ${pagination.page === index + 1 ? "active" : ""}`}>
-                <button className="page-link" onClick={() => setCurrentPage(index + 1)}>
-                  {index + 1}
+        <TablePagination pagination={pagination} onPageChange={(page) => fetchRangers(page)} />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && rangerToDelete && (
+        <div className="modal fade show" style={{ display: "block", backgroundColor: "rgba(0, 0, 0, 0.5)" }}>
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Delete Ranger</h5>
+                <button type="button" className="btn-close" onClick={handleCloseDeleteModal}></button>
+              </div>
+              <div className="modal-body">
+                <div className="d-flex align-items-center mb-3">
+                  <div className="bg-light rounded-circle p-3 me-3">
+                    <i className="bi bi-person-fill fs-3"></i>
+                  </div>
+                  <div>
+                    <h5 className="mb-1">{rangerToDelete.name}</h5>
+                    <p className="text-muted mb-0">Assigned Ranger</p>
+                  </div>
+                </div>
+                <p>Are you sure you want to delete this ranger? This action cannot be undone.</p>
+                <div className="alert alert-warning">
+                  <i className="bi bi-exclamation-triangle me-2"></i>
+                  Warning: Deleting this ranger will remove all their assignments and related data.
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-secondary" onClick={handleCloseDeleteModal}>
+                  Cancel
                 </button>
-              </li>
-            ))}
-            <li className={`page-item ${!pagination.hasNext ? "disabled" : ""}`}>
-              <button className="page-link" onClick={() => setCurrentPage(currentPage + 1)} disabled={!pagination.hasNext}>
-                &gt;
-              </button>
-            </li>
-          </ul>
-        </nav>
+                <button
+                  type="button"
+                  className="btn btn-danger"
+                  onClick={confirmDeleteRanger}
+                  disabled={isDeleting}
+                >
+                  {isDeleting ? (
+                    <>
+                      <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
+                      Deleting...
+                    </>
+                  ) : (
+                    "Delete"
+                  )}
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Success Modal */}
+      {showSuccessModal && (
+        <div className="modal fade show" style={{ display: "block", backgroundColor: "rgba(0, 0, 0, 0.5)" }}>
+          <div className="modal-dialog">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h5 className="modal-title">Success</h5>
+                <button type="button" className="btn-close" onClick={() => setShowSuccessModal(false)}></button>
+              </div>
+              <div className="modal-body">
+                <div className="text-center py-4">
+                  <div className="mb-3">
+                    <i className="bi bi-check-circle-fill text-success display-1"></i>
+                  </div>
+                  <h5>Ranger deleted successfully!</h5>
+                </div>
+              </div>
+              <div className="modal-footer">
+                <button type="button" className="btn btn-primary" onClick={() => setShowSuccessModal(false)}>
+                  OK
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
-  );
-};
+  )
+}
 
-export default RangersTable;
+export default RangersTable

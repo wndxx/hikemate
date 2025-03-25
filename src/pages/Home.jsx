@@ -81,23 +81,6 @@ const Home = () => {
           </div>
         </div>
       </section>
-
-      {/* CTA Section */}
-      {/* <section className="py-5 bg-primary text-white">
-        <div className="container py-4 text-center">
-          <div className="row justify-content-center">
-            <div className="col-lg-8">
-              <h2 className="display-6 mb-3">Ready for Your Next Adventure?</h2>
-              <p className="lead mb-4">
-                Join thousands of hikers who have discovered the beauty of mountains with HikeMate.
-              </p>
-              <Button variant="light" size="lg">
-                Get Started Today
-              </Button>
-            </div>
-          </div>
-        </div>
-      </section> */}
     </Layout>
   )
 }

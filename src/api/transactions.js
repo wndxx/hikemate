@@ -44,7 +44,47 @@ export const createTransaction = async (transactionData) => {
 export const getUserTransactions = async () => {
   try {
     const token = getToken()
-    const response = await axios.get(`${API_URL}/transactions/user`, {
+
+    // Get user ID from localStorage
+    let hikerId = null
+    try {
+      const userStr = localStorage.getItem("user")
+      if (userStr) {
+        const userData = JSON.parse(userStr)
+
+        // IMPORTANT: Use loggedInId instead of id
+        // The user object contains both id and loggedInId, and loggedInId is the actual hiker ID
+        hikerId = userData.loggedInId || userData.id
+
+        console.log("Retrieved hiker ID from localStorage:", hikerId)
+        console.log("Full user data:", userData)
+      }
+    } catch (e) {
+      console.error("Error parsing user data from localStorage:", e)
+    }
+
+    if (!hikerId) {
+      console.error("No hiker ID found for transaction fetch")
+      return {
+        success: false,
+        message: "User ID not found",
+      }
+    }
+
+    // Build query parameters - IMPORTANT: Do NOT include status parameter
+    const params = {
+      page: 1,
+      size: 10,
+      direction: "asc",
+      sort: "id",
+      hiker_id: hikerId,
+    }
+
+    console.log("Fetching transactions with params:", params)
+
+    // Make the API request
+    const response = await axios.get(`${API_URL}/transactions`, {
+      params,
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -55,13 +95,27 @@ export const getUserTransactions = async () => {
     if (response.data.status === 200) {
       return {
         success: true,
-        transactions: response.data.data,
+        transactions: response.data.data || [],
+        pagination: response.data.paging,
       }
     } else {
       return createErrorResponse(response.data.message || "Failed to fetch transactions")
     }
   } catch (error) {
     logApiError("fetching user transactions", error)
+
+    // Special handling for 404 errors
+    if (error.response && error.response.status === 404) {
+      console.warn(
+        "404 error when fetching transactions. This might be due to no transactions found or invalid hiker ID.",
+      )
+      return {
+        success: true, // Return success with empty array instead of error
+        transactions: [],
+        message: "No transactions found",
+      }
+    }
+
     return createErrorResponse(error.response?.data?.message || "Failed to fetch transactions", error)
   }
 }
@@ -161,4 +215,3 @@ export const updateTransactionStatus = async (id, statusData) => {
     }
   }
 }
-

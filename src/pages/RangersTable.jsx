@@ -61,36 +61,9 @@ const RangersTable = () => {
     navigate(`/ranger/${ranger.id}`)
   }
 
-  const handleDeleteRanger = (ranger) => {
-    setRangerToDelete(ranger)
-    setShowDeleteModal(true)
-  }
 
-  const handleCloseDeleteModal = () => {
-    setShowDeleteModal(false)
-    setRangerToDelete(null)
-  }
 
-  const confirmDeleteRanger = async () => {
-    if (!rangerToDelete) return
 
-    setIsDeleting(true)
-    try {
-      const result = await deleteRanger(rangerToDelete.id)
-      if (result.success) {
-        setShowSuccessModal(true)
-        handleCloseDeleteModal()
-        fetchRangers()
-      } else {
-        alert(result.message || "Failed to delete ranger")
-      }
-    } catch (error) {
-      console.error("Error deleting ranger:", error)
-      alert("An error occurred while deleting the ranger")
-    } finally {
-      setIsDeleting(false)
-    }
-  }
 
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
@@ -150,13 +123,7 @@ const RangersTable = () => {
                       >
                         <i className="bi bi-eye"></i>
                       </button>
-                      <button
-                        className="btn btn-danger btn-sm"
-                        onClick={() => handleDeleteRanger(ranger)}
-                        title="Delete"
-                      >
-                        <i className="bi bi-trash"></i>
-                      </button>
+                      
                     </td>
                   </tr>
                 ))

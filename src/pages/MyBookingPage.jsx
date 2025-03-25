@@ -1,23 +1,33 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { Link, useLocation } from "react-router-dom"
+import { Link, useLocation, useNavigate } from "react-router-dom"
 import Layout from "../components/layout/Layout"
 import Loading from "../components/loading/Loading"
 import { getUserTransactions } from "../api/transactions"
 import { useAuth } from "../context/AuthContext"
 
 const MyBookingPage = () => {
-  const { user } = useAuth()
+  const { user, isAuthenticated } = useAuth()
   const [transactions, setTransactions] = useState([])
+  const [allTransactions, setAllTransactions] = useState([]) // Store all transactions
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState(null)
   const [activeTab, setActiveTab] = useState("active") // active, completed, cancelled
   const [selectedTransaction, setSelectedTransaction] = useState(null)
   const [showModal, setShowModal] = useState(false)
+  const navigate = useNavigate()
 
   const location = useLocation()
   const [showPaymentSuccessAlert, setShowPaymentSuccessAlert] = useState(false)
+
+  // Check if user is authenticated
+  useEffect(() => {
+    if (!isAuthenticated) {
+      console.log("User not authenticated, redirecting to login")
+      navigate("/login", { state: { from: location.pathname } })
+    }
+  }, [isAuthenticated, navigate, location])
 
   useEffect(() => {
     // Check if we're coming from a payment redirect
@@ -31,38 +41,79 @@ const MyBookingPage = () => {
     }
   }, [location])
 
+  // Fetch transactions only once
   useEffect(() => {
-    fetchTransactions()
-  }, [])
+    if (isAuthenticated) {
+      fetchTransactions()
+    }
+  }, [isAuthenticated])
+
+  // Filter transactions when tab changes
+  useEffect(() => {
+    if (allTransactions.length > 0) {
+      filterTransactionsByTab()
+    }
+  }, [activeTab, allTransactions])
 
   const fetchTransactions = async () => {
     setIsLoading(true)
+    setError(null)
+
     try {
+      // Log user information for debugging
+      console.log("Current user from context:", user)
+      console.log("User from localStorage:", localStorage.getItem("user"))
+
+      // Fetch all transactions for the user without status filtering
       const result = await getUserTransactions()
+      console.log("Transaction fetch result:", result)
+
       if (result.success) {
-        setTransactions(result.transactions || [])
+        // Store all transactions
+        setAllTransactions(result.transactions || [])
+        // Initial filtering based on active tab
+        filterTransactionsByTab(result.transactions || [])
       } else {
         console.warn("Warning fetching transactions:", result.message)
+        setAllTransactions([])
         setTransactions([])
+        if (result.message && result.message !== "No transactions found" && result.message !== "User ID not found") {
+          setError(`Unable to load your bookings: ${result.message}`)
+        }
       }
     } catch (error) {
-      console.error("Error fetching transactions:", error)
+      console.error("Error in fetchTransactions:", error)
+      setAllTransactions([])
       setTransactions([])
+      setError("An unexpected error occurred while loading your bookings. Please try again later.")
     } finally {
       setIsLoading(false)
     }
   }
 
   // Filter transactions based on active tab
-  const filteredTransactions = transactions.filter((transaction) => {
+  const filterTransactionsByTab = (transactionsToFilter = allTransactions) => {
+    let filteredData = []
+
     if (activeTab === "active") {
-      return transaction.paymentStatus === "ORDERED"
+      // Active bookings: ORDERED or PENDING
+      filteredData = transactionsToFilter.filter(
+        (transaction) => transaction.paymentStatus === "ORDERED" || transaction.paymentStatus === "PENDING",
+      )
     } else if (activeTab === "completed") {
-      return transaction.paymentStatus === "PAID"
-    } else {
-      return transaction.paymentStatus !== "ORDERED" && transaction.paymentStatus !== "PAID"
+      // Completed bookings: SETTLEMENT or PAID
+      filteredData = transactionsToFilter.filter(
+        (transaction) => transaction.paymentStatus === "SETTLEMENT" || transaction.paymentStatus === "PAID",
+      )
+    } else if (activeTab === "cancelled") {
+      // Cancelled/Failed bookings: CANCEL, FAILURE, EXPIRED, DENY
+      filteredData = transactionsToFilter.filter((transaction) =>
+        ["CANCEL", "FAILURE", "EXPIRED", "DENY"].includes(transaction.paymentStatus),
+      )
     }
-  })
+
+    setTransactions(filteredData)
+  }
 
   // Format date for display
   const formatDate = (dateString) => {
@@ -75,10 +126,11 @@ const MyBookingPage = () => {
 
   // Format price to IDR
   const formatPrice = (price) => {
+    const minimumFractionDigits = 0
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
       currency: "IDR",
-      minimumFractionDigits: 0,
+      minimumFractionDigits: minimumFractionDigits,
     }).format(price)
   }
 
@@ -96,6 +148,18 @@ const MyBookingPage = () => {
   // Handle close modal
   const handleCloseModal = () => {
     setShowModal(false)
+  }
+
+  // If not authenticated, show loading until redirect happens
+  if (!isAuthenticated) {
+    return (
+      <Layout>
+        <div className="container py-5 text-center">
+          <Loading />
+          <p className="mt-3">Checking authentication status...</p>
+        </div>
+      </Layout>
+    )
   }
 
   return (
@@ -122,40 +186,24 @@ const MyBookingPage = () => {
               Active Bookings
             </button>
           </li>
-          <li className="nav-item">
-            <button
-              className={`nav-link ${activeTab === "completed" ? "active" : ""}`}
-              onClick={() => setActiveTab("completed")}
-            >
-              Completed
-            </button>
-          </li>
-          <li className="nav-item">
-            <button
-              className={`nav-link ${activeTab === "cancelled" ? "active" : ""}`}
-              onClick={() => setActiveTab("cancelled")}
-            >
-              Cancelled/Failed
-            </button>
-          </li>
         </ul>
 
         {isLoading ? (
           <div className="text-center py-5">
             <Loading />
           </div>
-        ) : filteredTransactions.length > 0 ? (
+        ) : transactions.length > 0 ? (
           <div className="row">
-            {filteredTransactions.map((transaction) => (
+            {transactions.map((transaction) => (
               <div className="col-md-6 mb-4" key={transaction.transactionId}>
                 <div className="card shadow-sm h-100">
                   <div className="card-header d-flex justify-content-between align-items-center">
                     <h5 className="mb-0">Booking #{transaction.transactionId.substring(0, 8)}</h5>
                     <span
                       className={`badge ${
-                        transaction.paymentStatus === "PAID"
+                        transaction.paymentStatus === "SETTLEMENT" || transaction.paymentStatus === "PAID"
                           ? "bg-success"
-                          : transaction.paymentStatus === "ORDERED"
+                          : transaction.paymentStatus === "ORDERED" || transaction.paymentStatus === "PENDING"
                             ? "bg-warning"
                             : "bg-danger"
                       }`}
@@ -198,18 +246,16 @@ const MyBookingPage = () => {
                     </div>
 
                     <div className="d-flex justify-content-between mt-3">
-                      {transaction.paymentStatus === "ORDERED" && transaction.paymentUrl && (
-                        <button
-                          className="btn btn-primary"
-                          onClick={() => handleContinuePayment(transaction.paymentUrl)}
-                        >
-                          <i className="bi bi-credit-card me-2"></i>Continue Payment
-                        </button>
-                      )}
-                      <button 
-                        className="btn btn-info"
-                        onClick={() => handleViewDetails(transaction)}
-                      >
+                      {(transaction.paymentStatus === "ORDERED" || transaction.paymentStatus === "PENDING") &&
+                        transaction.paymentUrl && (
+                          <button
+                            className="btn btn-primary"
+                            onClick={() => handleContinuePayment(transaction.paymentUrl)}
+                          >
+                            <i className="bi bi-credit-card me-2"></i>Continue Payment
+                          </button>
+                        )}
+                      <button className="btn btn-info" onClick={() => handleViewDetails(transaction)}>
                         <i className="bi bi-eye me-2"></i>View Details
                       </button>
                     </div>
@@ -245,31 +291,50 @@ const MyBookingPage = () => {
                     <div className="row">
                       <div className="col-md-6">
                         <h6>Transaction Information</h6>
-                        <p><strong>ID:</strong> {selectedTransaction.transactionId}</p>
-                        <p><strong>Status:</strong> 
-                          <span className={`badge ${
-                            selectedTransaction.paymentStatus === "PAID"
-                              ? "bg-success"
-                              : selectedTransaction.paymentStatus === "ORDERED"
-                                ? "bg-warning"
-                                : "bg-danger"
-                          } ms-2`}>
+                        <p>
+                          <strong>ID:</strong> {selectedTransaction.transactionId}
+                        </p>
+                        <p>
+                          <strong>Status:</strong>
+                          <span
+                            className={`badge ${
+                              selectedTransaction.paymentStatus === "SETTLEMENT" ||
+                              selectedTransaction.paymentStatus === "PAID"
+                                ? "bg-success"
+                                : selectedTransaction.paymentStatus === "ORDERED" ||
+                                    selectedTransaction.paymentStatus === "PENDING"
+                                  ? "bg-warning"
+                                  : "bg-danger"
+                            } ms-2`}
+                          >
                             {selectedTransaction.paymentStatus}
                           </span>
                         </p>
-                        <p><strong>Date:</strong> {formatDate(selectedTransaction.transactionDate)}</p>
-                        <p><strong>Amount:</strong> {formatPrice(selectedTransaction.price)}</p>
-                        
+                        <p>
+                          <strong>Date:</strong> {formatDate(selectedTransaction.transactionDate)}
+                        </p>
+                        <p>
+                          <strong>Amount:</strong> {formatPrice(selectedTransaction.price)}
+                        </p>
+
                         <h6 className="mt-4">Climbing Information</h6>
-                        <p><strong>Route:</strong> {selectedTransaction.route}</p>
-                        <p><strong>Start Date:</strong> {formatDate(selectedTransaction.startDate)}</p>
-                        <p><strong>End Date:</strong> {formatDate(selectedTransaction.endDate)}</p>
-                        <p><strong>Up Status:</strong> 
+                        <p>
+                          <strong>Route:</strong> {selectedTransaction.route}
+                        </p>
+                        <p>
+                          <strong>Start Date:</strong> {formatDate(selectedTransaction.startDate)}
+                        </p>
+                        <p>
+                          <strong>End Date:</strong> {formatDate(selectedTransaction.endDate)}
+                        </p>
+                        <p>
+                          <strong>Up Status:</strong>
                           <span className={`badge ${selectedTransaction.isUp ? "bg-success" : "bg-secondary"} ms-2`}>
                             {selectedTransaction.isUp ? "Up" : "Not Up"}
                           </span>
                         </p>
-                        <p><strong>Down Status:</strong> 
+                        <p>
+                          <strong>Down Status:</strong>
                           <span className={`badge ${selectedTransaction.isDown ? "bg-info" : "bg-secondary"} ms-2`}>
                             {selectedTransaction.isDown ? "Down" : "Not Down"}
                           </span>
@@ -279,28 +344,36 @@ const MyBookingPage = () => {
                         <h6>Mountain Information</h6>
                         {selectedTransaction.mountain?.mountainCoverUrl && (
                           <img
-                            src={selectedTransaction.mountain.mountainCoverUrl}
+                            src={selectedTransaction.mountain.mountainCoverUrl || "/placeholder.svg"}
                             alt={selectedTransaction.mountain.name}
                             className="img-fluid rounded mb-3"
                           />
                         )}
-                        <p><strong>Mountain:</strong> {selectedTransaction.mountain?.name}</p>
-                        <p><strong>Location:</strong> {selectedTransaction.mountain?.location}</p>
-                        <p><strong>Difficulty:</strong> {selectedTransaction.mountain?.difficulty}</p>
-                        
-                        {selectedTransaction.paymentStatus === "ORDERED" && selectedTransaction.paymentUrl && (
-                          <div className="mt-4">
-                            <button
-                              className="btn btn-primary w-100"
-                              onClick={() => {
-                                handleCloseModal()
-                                handleContinuePayment(selectedTransaction.paymentUrl)
-                              }}
-                            >
-                              <i className="bi bi-credit-card me-2"></i>Continue Payment
-                            </button>
-                          </div>
-                        )}
+                        <p>
+                          <strong>Mountain:</strong> {selectedTransaction.mountain?.name}
+                        </p>
+                        <p>
+                          <strong>Location:</strong> {selectedTransaction.mountain?.location}
+                        </p>
+                        <p>
+                          <strong>Difficulty:</strong> {selectedTransaction.mountain?.difficulty}
+                        </p>
+
+                        {(selectedTransaction.paymentStatus === "ORDERED" ||
+                          selectedTransaction.paymentStatus === "PENDING") &&
+                          selectedTransaction.paymentUrl && (
+                            <div className="mt-4">
+                              <button
+                                className="btn btn-primary w-100"
+                                onClick={() => {
+                                  handleCloseModal()
+                                  handleContinuePayment(selectedTransaction.paymentUrl)
+                                }}
+                              >
+                                <i className="bi bi-credit-card me-2"></i>Continue Payment
+                              </button>
+                            </div>
+                          )}
                       </div>
                     </div>
                   )}

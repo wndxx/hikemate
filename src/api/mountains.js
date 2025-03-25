@@ -72,38 +72,53 @@ export const getMountainById = async (id) => {
   }
 }
 
-// Update the createMountain function to use the correct form data keys for images
-export const createMountain = async (mountainData, coverImage, basecampImages = []) => {
+// Create new mountain with proper route handling
+export const createMountain = async (mountainData, mountainImage, basecampImages) => {
   try {
+    const token = getToken()
+
+    // Create FormData for file uploads
     const formData = new FormData()
 
-    // Add mountain data as JSON
+    // Add mountain data as JSON string
     formData.append("mountain", JSON.stringify(mountainData))
 
-    // Add cover image with the correct key "image"
-    if (coverImage) {
-      formData.append("image", coverImage)
+    // Add mountain cover image if provided
+    if (mountainImage) {
+      formData.append("image", mountainImage)
     }
 
-    // Add basecamp images with the correct key "base_camp_image"
+    // Add basecamp images if provided
     if (basecampImages && basecampImages.length > 0) {
-      for (let i = 0; i < basecampImages.length; i++) {
-        formData.append("base_camp_image", basecampImages[i])
+      basecampImages.forEach((image) => {
+        formData.append("base_camp_image", image)
+      })
+    }
+
+    // Log the FormData entries for debugging
+    console.log("FormData entries:")
+    for (const pair of formData.entries()) {
+      if (pair[0] === "mountain") {
+        console.log(`${pair[0]}: ${pair[1]}`)
+      } else {
+        console.log(`${pair[0]}: [File]`)
       }
     }
 
     const response = await axios.post(`${API_URL}/mountains`, formData, {
       headers: {
-        Authorization: `Bearer ${getToken()}`,
+        Authorization: `Bearer ${token}`,
         "Content-Type": "multipart/form-data",
       },
     })
 
+    console.log("Mountain creation response:", response.data)
+
     if (response.data.status === 201) {
       return {
         success: true,
+        message: "Mountain created successfully!",
         mountain: response.data.data,
-        message: response.data.message || "Mountain created successfully",
       }
     } else {
       return {
@@ -116,42 +131,59 @@ export const createMountain = async (mountainData, coverImage, basecampImages = 
     return {
       success: false,
       message: error.response?.data?.message || "Failed to create mountain",
+      error: error.response?.data || error.message,
     }
   }
 }
 
-// Update the updateMountain function to use the correct form data keys for images
-export const updateMountain = async (mountainData, coverImage, basecampImages = []) => {
+// Update mountain - Changed to use PATCH method
+export const updateMountain = async (mountainData, coverImage, basecampImages) => {
   try {
+    const token = getToken()
     const formData = new FormData()
 
-    // Add mountain data as JSON
+    // Format mountain routes properly if they exist
+    if (mountainData.mountainRoutes && mountainData.mountainRoutes.length > 0) {
+      // Ensure each route has the proper structure
+      mountainData.mountainRoutes = mountainData.mountainRoutes.map((route) => {
+        // If route is just an ID, convert to proper object
+        if (typeof route === "object" && route.id) {
+          return { routeId: route.id }
+        }
+        return route
+      })
+    }
+
+    // Add mountain data as JSON string
     formData.append("mountain", JSON.stringify(mountainData))
 
-    // Add cover image with the correct key "image"
+    // Add cover image if provided
     if (coverImage) {
       formData.append("image", coverImage)
     }
 
-    // Add basecamp images with the correct key "base_camp_image"
+    // Add basecamp images if provided
     if (basecampImages && basecampImages.length > 0) {
-      for (let i = 0; i < basecampImages.length; i++) {
-        formData.append("base_camp_image", basecampImages[i])
-      }
+      basecampImages.forEach((image) => {
+        formData.append("base_camp_image", image)
+      })
     }
 
-    const response = await axios.post(`${API_URL}/mountains/${mountainData.id}`, formData, {
+    // Changed from POST to PATCH
+    const response = await axios.patch(`${API_URL}/mountains/${mountainData.id}`, formData, {
       headers: {
-        Authorization: `Bearer ${getToken()}`,
+        Authorization: `Bearer ${token}`,
         "Content-Type": "multipart/form-data",
       },
     })
 
+    console.log("Mountain update response:", response.data)
+
     if (response.data.status === 200) {
       return {
         success: true,
+        message: "Mountain updated successfully!",
         mountain: response.data.data,
-        message: response.data.message || "Mountain updated successfully",
       }
     } else {
       return {
@@ -164,6 +196,7 @@ export const updateMountain = async (mountainData, coverImage, basecampImages = 
     return {
       success: false,
       message: error.response?.data?.message || "Failed to update mountain",
+      error: error.response?.data || error.message,
     }
   }
 }
@@ -197,4 +230,3 @@ export const deleteMountain = async (id) => {
     }
   }
 }
-

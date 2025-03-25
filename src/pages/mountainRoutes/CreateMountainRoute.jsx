@@ -1,11 +1,10 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { useNavigate } from "react-router-dom"
+import { useNavigate, Link } from "react-router-dom"
 import { createMountainRoute } from "../../api/mountainRoutes"
 import { getAllMountains } from "../../api/mountains"
 import { getAllRoutes } from "../../api/routes"
-import { Link } from "react-router-dom"
 import Loading from "../../components/loading/Loading"
 
 const CreateMountainRoute = () => {
@@ -21,7 +20,6 @@ const CreateMountainRoute = () => {
   const [formData, setFormData] = useState({
     mountainId: "",
     routeId: "",
-    isActive: true,
   })
 
   // Fetch mountains and routes on component mount
@@ -29,18 +27,24 @@ const CreateMountainRoute = () => {
     const fetchData = async () => {
       setIsLoadingData(true)
       try {
-        const [mountainsResult, routesResult] = await Promise.all([getAllMountains(), getAllRoutes()])
-
+        // Fetch mountains
+        const mountainsResult = await getAllMountains()
         if (mountainsResult.success) {
           setMountains(mountainsResult.mountains || [])
+        } else {
+          console.error("Failed to fetch mountains:", mountainsResult.message)
         }
 
+        // Fetch routes
+        const routesResult = await getAllRoutes()
         if (routesResult.success) {
           setRoutes(routesResult.routes || [])
+        } else {
+          console.error("Failed to fetch routes:", routesResult.message)
         }
       } catch (error) {
         console.error("Error fetching data:", error)
-        setError("An error occurred while fetching data")
+        setError("An error occurred while fetching mountains and routes")
       } finally {
         setIsLoadingData(false)
       }
@@ -51,10 +55,10 @@ const CreateMountainRoute = () => {
 
   // Handle input change
   const handleInputChange = (e) => {
-    const { name, value, type, checked } = e.target
+    const { name, value } = e.target
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "checkbox" ? checked : value,
+      [name]: value,
     }))
   }
 
@@ -63,6 +67,13 @@ const CreateMountainRoute = () => {
     e.preventDefault()
     setIsSubmitting(true)
     setError(null)
+
+    // Validate form
+    if (!formData.mountainId || !formData.routeId) {
+      setError("Please select both a mountain and a route")
+      setIsSubmitting(false)
+      return
+    }
 
     try {
       const result = await createMountainRoute(formData)
@@ -84,34 +95,6 @@ const CreateMountainRoute = () => {
     }
   }
 
-  if (isLoadingData) {
-    return (
-      <div className="container-fluid p-0">
-        <div className="bg-light py-3 px-4 mb-4">
-          <nav aria-label="breadcrumb">
-            <ol className="breadcrumb mb-0">
-              <li className="breadcrumb-item">
-                <Link to="/dashboard">Dashboard</Link>
-              </li>
-              <li className="breadcrumb-item">
-                <Link to="/dashboard/mountain-routes">Rute Gunung</Link>
-              </li>
-              <li className="breadcrumb-item active" aria-current="page">
-                Buat Rute Gunung
-              </li>
-            </ol>
-          </nav>
-        </div>
-        <div className="px-4 pb-4">
-          <div className="text-center py-5">
-            <Loading />
-            <p className="mt-3">Loading data...</p>
-          </div>
-        </div>
-      </div>
-    )
-  }
-
   return (
     <div className="container-fluid p-0">
       {/* Breadcrumb */}
@@ -125,7 +108,7 @@ const CreateMountainRoute = () => {
               <Link to="/dashboard/mountain-routes">Rute Gunung</Link>
             </li>
             <li className="breadcrumb-item active" aria-current="page">
-              Buat Rute Gunung
+              Tambah Rute Gunung
             </li>
           </ol>
         </nav>
@@ -133,9 +116,9 @@ const CreateMountainRoute = () => {
 
       <div className="px-4 pb-4">
         <div className="d-flex justify-content-between align-items-center mb-4">
-          <h2 className="mb-0">Buat Rute Gunung Baru</h2>
+          <h2 className="mb-0">Tambah Rute Gunung Baru</h2>
           <Link to="/dashboard/mountain-routes" className="btn btn-outline-secondary">
-            <i className="bi bi-arrow-left me-2"></i>Kembali Ke Rute Gunung
+            <i className="bi bi-arrow-left me-2"></i>Kembali ke Daftar Rute Gunung
           </Link>
         </div>
 
@@ -145,11 +128,11 @@ const CreateMountainRoute = () => {
               <div className="mb-4">
                 <i className="bi bi-check-circle-fill text-success display-1"></i>
               </div>
-              <h3 className="mb-2">Sukses Membuat Rute Gunung!</h3>
-              <p className="text-muted mb-4">Rute Gunung Baru Sudah Berhasil Ditambahkan Di Database!</p>
+              <h3 className="mb-2">Rute Gunung Berhasil Dibuat!</h3>
+              <p className="text-muted mb-4">Rute telah berhasil ditambahkan ke gunung.</p>
               <div className="d-flex justify-content-center gap-3">
                 <Link to="/dashboard/mountain-routes" className="btn btn-primary">
-                  Kembali Ke Daftar Rute Gunung
+                  Kembali ke Daftar Rute Gunung
                 </Link>
                 <button
                   className="btn btn-outline-primary"
@@ -159,11 +142,10 @@ const CreateMountainRoute = () => {
                     setFormData({
                       mountainId: "",
                       routeId: "",
-                      isActive: true,
                     })
                   }}
                 >
-                  Buat Rute Gunung Lain
+                  Tambah Rute Gunung Lain
                 </button>
               </div>
             </div>
@@ -178,18 +160,23 @@ const CreateMountainRoute = () => {
                 </div>
               )}
 
-              <form onSubmit={handleSubmit}>
-                <div className="row">
-                  <div className="col-lg-12">
-                    <div className="card mb-4">
-                      <div className="card-header bg-light">
-                        <h5 className="mb-0">Informasi Rute Gunung</h5>
-                      </div>
-                      <div className="card-body">
-                        <div className="row g-3">
-                          <div className="col-md-6">
+              {isLoadingData ? (
+                <div className="text-center py-5">
+                  <Loading />
+                  <p className="mt-3">Memuat data...</p>
+                </div>
+              ) : (
+                <form onSubmit={handleSubmit}>
+                  <div className="row">
+                    <div className="col-lg-6 mx-auto">
+                      <div className="card mb-4">
+                        <div className="card-header bg-light">
+                          <h5 className="mb-0">Informasi Rute Gunung</h5>
+                        </div>
+                        <div className="card-body">
+                          <div className="mb-4">
                             <label htmlFor="mountainId" className="form-label">
-                              Gunung <span className="text-danger">*</span>
+                              Pilih Gunung <span className="text-danger">*</span>
                             </label>
                             {mountains.length > 0 ? (
                               <select
@@ -200,23 +187,25 @@ const CreateMountainRoute = () => {
                                 onChange={handleInputChange}
                                 required
                               >
-                                <option value="">Pilih Gunung</option>
+                                <option value="">-- Pilih Gunung --</option>
                                 {mountains.map((mountain) => (
                                   <option key={mountain.id} value={mountain.id}>
-                                    {mountain.name}
+                                    {mountain.name} - {mountain.location}
                                   </option>
                                 ))}
                               </select>
                             ) : (
                               <div className="alert alert-warning">
                                 <i className="bi bi-exclamation-triangle me-2"></i>
-                                Gunung Tidak Tersedia!. Silahkan Buat Gunung Terlebih Dahulu!.
+                                Tidak ada gunung yang tersedia.{" "}
+                                <Link to="/dashboard/mountains/create">Tambah gunung baru</Link>
                               </div>
                             )}
                           </div>
-                          <div className="col-md-6">
+
+                          <div className="mb-4">
                             <label htmlFor="routeId" className="form-label">
-                              Rute <span className="text-danger">*</span>
+                              Pilih Rute <span className="text-danger">*</span>
                             </label>
                             {routes.length > 0 ? (
                               <select
@@ -227,7 +216,7 @@ const CreateMountainRoute = () => {
                                 onChange={handleInputChange}
                                 required
                               >
-                                <option value="">Pilih Rute</option>
+                                <option value="">-- Pilih Rute --</option>
                                 {routes.map((route) => (
                                   <option key={route.id} value={route.id}>
                                     {route.routeName}
@@ -237,51 +226,43 @@ const CreateMountainRoute = () => {
                             ) : (
                               <div className="alert alert-warning">
                                 <i className="bi bi-exclamation-triangle me-2"></i>
-                                Rute Tidak Tersedia. Silahkan Buat Rute Terlebih Dahulu!.
+                                Tidak ada rute yang tersedia.{" "}
+                                <Link to="/dashboard/routes/create">Tambah rute baru</Link>
                               </div>
                             )}
                           </div>
-                          <div className="col-md-12">
-                            <div className="form-check form-switch mt-2">
-                              <input
-                                className="form-check-input"
-                                type="checkbox"
-                                id="isActive"
-                                name="isActive"
-                                checked={formData.isActive}
-                                onChange={handleInputChange}
-                              />
-                              <label className="form-check-label" htmlFor="isActive">
-                                Aktif
-                              </label>
-                            </div>
+
+                          <div className="alert alert-info">
+                            <i className="bi bi-info-circle me-2"></i>
+                            Menghubungkan gunung dengan rute akan memungkinkan pendaki untuk memilih rute saat mendaki
+                            gunung tersebut.
                           </div>
                         </div>
                       </div>
+
+                      <div className="d-flex justify-content-end gap-2 mt-4">
+                        <Link to="/dashboard/mountain-routes" className="btn btn-secondary">
+                          Batal
+                        </Link>
+                        <button type="submit" className="btn btn-primary" disabled={isSubmitting}>
+                          {isSubmitting ? (
+                            <>
+                              <span
+                                className="spinner-border spinner-border-sm me-2"
+                                role="status"
+                                aria-hidden="true"
+                              ></span>
+                              Membuat...
+                            </>
+                          ) : (
+                            "Buat Rute Gunung"
+                          )}
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-
-                <div className="d-flex justify-content-end gap-2 mt-4">
-                  <Link to="/dashboard/mountain-routes" className="btn btn-secondary">
-                    Batal
-                  </Link>
-                  <button
-                    type="submit"
-                    className="btn btn-primary"
-                    disabled={isSubmitting || !formData.mountainId || !formData.routeId}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
-                        Membuat...
-                      </>
-                    ) : (
-                      "Create Mountain Route"
-                    )}
-                  </button>
-                </div>
-              </form>
+                </form>
+              )}
             </div>
           </div>
         )}

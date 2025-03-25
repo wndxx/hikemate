@@ -445,9 +445,9 @@ const TransactionPage = () => {
                 <div className="d-flex justify-content-between mb-3">
                   <span>Route:</span>
                   <span>
-                    {formData.routeId === "3d8d76c2-27f5-4c13-bc06-3b818d1799aa"
+                    {formData.routeId === "90dce956-796e-49ad-96f7-081d039fcc06"
                       ? "Jalur Utama"
-                      : formData.routeId === "8042a96c-ee9f-4733-8348-286367eb4b47"
+                      : formData.routeId === "d359a1bb-ea82-4d6c-9453-f8aee9bc5358"
                         ? "Jalur Alternatif"
                         : "Unknown Route"}
                   </span>
@@ -503,7 +503,7 @@ const TransactionPage = () => {
                       <strong>Route:</strong>{" "}
                       {formData.routeId === "3d8d76c2-27f5-4c13-bc06-3b818d1799aa"
                         ? "Jalur Utama"
-                        : formData.routeId === "8042a96c-ee9f-4733-8348-286367eb4b47"
+                        : formData.routeId === "d359a1bb-ea82-4d6c-9453-f8aee9bc5358"
                           ? "Jalur Alternatif"
                           : "Unknown Route"}
                     </p>

@@ -17,3 +17,18 @@ export const getUserInfo = () => {
   }
 }
 
+// Add a function to get the correct hiker ID
+export const getHikerId = () => {
+  try {
+    const userStr = localStorage.getItem("user")
+    if (!userStr) return null
+
+    const userData = JSON.parse(userStr)
+    // Use loggedInId if available, otherwise fall back to id
+    return userData.loggedInId || userData.id
+  } catch (error) {
+    console.error("Error getting hiker ID:", error)
+    return null
+  }
+}
+

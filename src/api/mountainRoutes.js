@@ -4,17 +4,32 @@ import { logApiError, createErrorResponse } from "../utils/apiUtils"
 
 const API_URL = "http://10.10.103.80:8080/api/v1"
 
-// Get all mountain routes with pagination
-export const getAllMountainRoutes = async (page = 1, size = 10, direction = "asc", sort = "id") => {
+// Get all mountain routes with pagination and filtering
+export const getAllMountainRoutes = async (
+  page = 1,
+  size = 10,
+  direction = "asc",
+  sort = "id",
+  mountainId = null,
+  routeId = null,
+) => {
   try {
     const token = getToken()
+
+    // Build query parameters
+    const params = {
+      page,
+      size,
+      direction,
+      sort,
+    }
+
+    // Add optional filters if provided
+    if (mountainId) params.mountainId = mountainId
+    if (routeId) params.routeId = routeId
+
     const response = await axios.get(`${API_URL}/mountain-routes`, {
-      params: {
-        page,
-        size,
-        direction,
-        sort,
-      },
+      params,
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -131,3 +146,4 @@ export const deleteMountainRoute = async (id) => {
     }
   }
 }
+

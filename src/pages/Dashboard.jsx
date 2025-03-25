@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react"
 import Layout from "../components/layout/Layout"
 import MountainsTable from "./MountainsTable"
+import MountainRoutesManagement from "./mountainRoutes/MountainRoutesManagement"
+import RoutesManagement from "./routes/RoutesManagement"
 import UsersTable from "./UsersTable"
 import RangersTable from "./RangersTable"
 import TransactionsTable from "./TransactionsTable"
@@ -250,69 +252,123 @@ const Dashboard = () => {
     <Layout showFooter={false}>
       <div className="d-flex">
         {/* Sidebar */}
-        <div className="sidebar p-4" style={{ width: "250px", minHeight: "100vh" , backgroundColor : "#DAD3BE"}}>
-          <h4 className="text-center mb-4 text-black">
-            <i className="bi bi-speedometer2 me-2"></i>
-            Dashboard
-          </h4>
-          <ul className="list-unstyled" >
-            <li className="mb-2">
-              <button
-                className={`btn w-100 text-start d-flex align-items-center ${
-                  activeTab === "home" ? "btn-primary" : ""
-                }`}
-                onClick={() => setActiveTab("home")} style={activeTab === "home" ? { backgroundColor: '#B7B597', borderColor: '#B7B597' } : {}}
-              >
-                <i className="bi bi-house me-2"></i>
-                <span>Home</span>
-              </button>
-            </li>
-            <li className="mb-2">
-              <button
-                className={`btn w-100 text-start d-flex align-items-center ${
-                  activeTab === "mountains" ? "btn-primary" : ""
-                }`}
-                onClick={() => setActiveTab("mountains")} style={activeTab === "mountains" ? { backgroundColor: '#B7B597', borderColor: '#B7B597' } : {}}
-              >
-                <i className="bi bi-triangle me-2"></i>
-                <span>Mountains</span>
-              </button>
-            </li>
-            <li className="mb-2">
-              <button
-                className={`btn w-100 text-start d-flex align-items-center ${
-                  activeTab === "users" ? "btn-primary" : ""
-                }`}
-                onClick={() => setActiveTab("users")} style={activeTab === "users" ? { backgroundColor: '#B7B597', borderColor: '#B7B597' } : {}}
-              >
-                <i className="bi bi-person me-2"></i>
-                <span>Users</span>
-              </button>
-            </li>
-            <li className="mb-2">
-              <button
-                className={`btn w-100 text-start d-flex align-items-center ${
-                  activeTab === "rangers" ? "btn-primary" : ""
-                }`}
-                onClick={() => setActiveTab("rangers")} style={activeTab === "rangers" ? { backgroundColor: '#B7B597', borderColor: '#B7B597' } : {}}
-              >
-                <i className="bi bi-person-badge me-2"></i>
-                <span>Rangers</span>
-              </button>
-            </li>
-            <li>
-              <button
-                className={`btn w-100 text-start d-flex align-items-center ${
-                  activeTab === "transactions" ? "btn-primary" : ""
-                }`}
-                onClick={() => setActiveTab("transactions")} style={activeTab === "transactions" ? { backgroundColor: '#B7B597', borderColor: '#B7B597' } : {}}
-              >
-                <i className="bi bi-credit-card me-2"></i>
-                <span>Transactions</span>
-              </button>
-            </li>
-          </ul>
-        </div>
+<div className="sidebar p-4" style={{ width: "250px", minHeight: "100vh", backgroundColor: "#DAD3BE" }}>
+  <h4 className="text-center mb-4 text-black">
+    <i className="bi bi-speedometer2 me-2"></i>
+    Dashboard
+  </h4>
+  <ul className="list-unstyled">
+    <li className="mb-2">
+      <button
+        className={`btn w-100 text-start d-flex align-items-center ${
+          activeTab === "home" ? "btn-primary" : ""
+        }`}
+        onClick={() => setActiveTab("home")}
+        style={activeTab === "home" ? { backgroundColor: '#B7B597', borderColor: '#B7B597' } : {}}
+      >
+        <i className="bi bi-house me-2"></i>
+        <span>Home</span>
+      </button>
+    </li>
+    
+    {/* Mountains Section */}
+<li className="mb-2">
+  <button
+    className={`btn w-100 text-start d-flex align-items-center ${
+      ["mountains", "mountain-routes", "routes"].includes(activeTab) ? "btn-primary" : ""
+    }`}
+    onClick={() => setActiveTab("mountains")}
+    style={["mountains", "mountain-routes", "routes"].includes(activeTab) ? { 
+      backgroundColor: '#B7B597', 
+      borderColor: '#B7B597' 
+    } : {}}
+  >
+    <i className="bi bi-triangle me-2"></i>
+    <span>Mountains</span>
+  </button>
+      
+      {/* Mountain Routes Submenu - visible when Mountains, Mountain Routes, or Routes is active */}
+  {["mountains", "mountain-routes", "routes"].includes(activeTab) && (
+    <div className="ps-4 mt-2">
+      <button
+        className={`btn w-100 text-start d-flex align-items-center ${
+          activeTab === "mountain-routes" ? "btn-primary" : ""
+        }`}
+        onClick={() => setActiveTab("mountain-routes")}
+        style={activeTab === "mountain-routes" ? { 
+          backgroundColor: '#B7B597', 
+          borderColor: '#B7B597',
+          padding: '0.25rem 0.5rem',
+          fontSize: '0.875rem'
+        } : {
+          padding: '0.25rem 0.5rem',
+          fontSize: '0.875rem'
+        }}
+      >
+        <i className="bi bi-signpost-split me-2"></i>
+        <span>Mountain Routes</span>
+      </button>
+      
+      <button
+        className={`btn w-100 text-start d-flex align-items-center mt-1 ${
+          activeTab === "routes" ? "btn-primary" : ""
+        }`}
+        onClick={() => setActiveTab("routes")}
+        style={activeTab === "routes" ? { 
+          backgroundColor: '#B7B597', 
+          borderColor: '#B7B597',
+          padding: '0.25rem 0.5rem',
+          fontSize: '0.875rem'
+        } : {
+          padding: '0.25rem 0.5rem',
+          fontSize: '0.875rem'
+        }}
+      >
+        <i className="bi bi-signpost me-2"></i>
+        <span>Routes</span>
+      </button>
+    </div>
+  )}
+</li>
+    
+    <li className="mb-2">
+      <button
+        className={`btn w-100 text-start d-flex align-items-center ${
+          activeTab === "users" ? "btn-primary" : ""
+        }`}
+        onClick={() => setActiveTab("users")}
+        style={activeTab === "users" ? { backgroundColor: '#B7B597', borderColor: '#B7B597' } : {}}
+      >
+        <i className="bi bi-person me-2"></i>
+        <span>Users</span>
+      </button>
+    </li>
+    <li className="mb-2">
+      <button
+        className={`btn w-100 text-start d-flex align-items-center ${
+          activeTab === "rangers" ? "btn-primary" : ""
+        }`}
+        onClick={() => setActiveTab("rangers")}
+        style={activeTab === "rangers" ? { backgroundColor: '#B7B597', borderColor: '#B7B597' } : {}}
+      >
+        <i className="bi bi-person-badge me-2"></i>
+        <span>Rangers</span>
+      </button>
+    </li>
+    <li>
+      <button
+        className={`btn w-100 text-start d-flex align-items-center ${
+          activeTab === "transactions" ? "btn-primary" : ""
+        }`}
+        onClick={() => setActiveTab("transactions")}
+        style={activeTab === "transactions" ? { backgroundColor: '#B7B597', borderColor: '#B7B597' } : {}}
+      >
+        <i className="bi bi-credit-card me-2"></i>
+        <span>Transactions</span>
+      </button>
+    </li>
+  </ul>
+</div>
 
         {/* Main Content */}
         <div className="container-fluid py-4 flex-grow-1">
@@ -494,6 +550,8 @@ const Dashboard = () => {
           )}
 
           {activeTab === "mountains" && <MountainsTable />}
+          {activeTab === "mountain-routes" && <MountainRoutesManagement />}
+          {activeTab === "routes" && <RoutesManagement />}
           {activeTab === "users" && <UsersTable />}
           {activeTab === "rangers" && <RangersTable />}
           {activeTab === "transactions" && <TransactionsTable />}

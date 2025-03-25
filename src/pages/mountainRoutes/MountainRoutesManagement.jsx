@@ -3,6 +3,8 @@
 import { useState, useEffect } from "react"
 import { Link } from "react-router-dom"
 import { getAllMountainRoutes, deleteMountainRoute } from "../../api/mountainRoutes"
+import { getAllMountains } from "../../api/mountains"
+import { getAllRoutes } from "../../api/routes"
 import Loading from "../../components/loading/Loading"
 
 const MountainRoutesManagement = () => {
@@ -16,16 +18,57 @@ const MountainRoutesManagement = () => {
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [deleteError, setDeleteError] = useState(null)
 
-  // Fetch mountain routes on component mount and when page changes
+  // Filter states
+  const [mountains, setMountains] = useState([])
+  const [routes, setRoutes] = useState([])
+  const [selectedMountainId, setSelectedMountainId] = useState("")
+  const [selectedRouteId, setSelectedRouteId] = useState("")
+  const [isLoadingFilters, setIsLoadingFilters] = useState(false)
+
+  // Fetch mountain routes on component mount and when filters or page changes
   useEffect(() => {
     fetchMountainRoutes()
-  }, [currentPage])
+  }, [currentPage, selectedMountainId, selectedRouteId])
+
+  // Fetch mountains and routes for filters
+  useEffect(() => {
+    const fetchFilters = async () => {
+      setIsLoadingFilters(true)
+      try {
+        // Fetch mountains
+        const mountainsResult = await getAllMountains()
+        if (mountainsResult.success) {
+          setMountains(mountainsResult.mountains || [])
+        }
+
+        // Fetch routes
+        const routesResult = await getAllRoutes()
+        if (routesResult.success) {
+          setRoutes(routesResult.routes || [])
+        }
+      } catch (error) {
+        console.error("Error fetching filters:", error)
+      } finally {
+        setIsLoadingFilters(false)
+      }
+    }
+
+    fetchFilters()
+  }, [])
 
   const fetchMountainRoutes = async () => {
     setIsLoading(true)
     setError(null)
     try {
-      const result = await getAllMountainRoutes(currentPage, 10)
+      const result = await getAllMountainRoutes(
+        currentPage,
+        10,
+        "asc",
+        "id",
+        selectedMountainId || null,
+        selectedRouteId || null,
+      )
+
       if (result.success) {
         setMountainRoutes(result.mountainRoutes || [])
         setTotalPages(Math.ceil((result.pagination?.totalItems || 10) / 10))
@@ -70,6 +113,23 @@ const MountainRoutesManagement = () => {
     }
   }
 
+  const handleFilterChange = (e) => {
+    const { name, value } = e.target
+    if (name === "mountainFilter") {
+      setSelectedMountainId(value)
+    } else if (name === "routeFilter") {
+      setSelectedRouteId(value)
+    }
+    // Reset to first page when filters change
+    setCurrentPage(1)
+  }
+
+  const clearFilters = () => {
+    setSelectedMountainId("")
+    setSelectedRouteId("")
+    setCurrentPage(1)
+  }
+
   return (
     <div className="container-fluid p-0">
       {/* Breadcrumb */}
@@ -94,6 +154,62 @@ const MountainRoutesManagement = () => {
           </Link>
         </div>
 
+        {/* Filters */}
+        <div className="card shadow-sm mb-4">
+          <div className="card-header bg-light">
+            <h5 className="mb-0">Filter</h5>
+          </div>
+          <div className="card-body">
+            <div className="row g-3">
+              <div className="col-md-5">
+                <label htmlFor="mountainFilter" className="form-label">
+                  Filter berdasarkan Gunung
+                </label>
+                <select
+                  className="form-select"
+                  id="mountainFilter"
+                  name="mountainFilter"
+                  value={selectedMountainId}
+                  onChange={handleFilterChange}
+                  disabled={isLoadingFilters}
+                >
+                  <option value="">Semua Gunung</option>
+                  {mountains.map((mountain) => (
+                    <option key={mountain.id} value={mountain.id}>
+                      {mountain.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="col-md-5">
+                <label htmlFor="routeFilter" className="form-label">
+                  Filter berdasarkan Rute
+                </label>
+                <select
+                  className="form-select"
+                  id="routeFilter"
+                  name="routeFilter"
+                  value={selectedRouteId}
+                  onChange={handleFilterChange}
+                  disabled={isLoadingFilters}
+                >
+                  <option value="">Semua Rute</option>
+                  {routes.map((route) => (
+                    <option key={route.id} value={route.id}>
+                      {route.routeName}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="col-md-2 d-flex align-items-end">
+                <button className="btn btn-outline-secondary w-100" onClick={clearFilters}>
+                  Reset Filter
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {error && (
           <div className="alert alert-danger mb-4">
             <i className="bi bi-exclamation-triangle-fill me-2"></i>
@@ -112,10 +228,21 @@ const MountainRoutesManagement = () => {
               <div className="text-center py-5">
                 <i className="bi bi-signpost-2 display-1 text-muted"></i>
                 <h4 className="mt-3">Tidak Menemukan Rute Gunung</h4>
-                <p className="text-muted">Mulai Dengan Menambah Rute Gunung</p>
-                <Link to="/dashboard/mountain-routes/create" className="btn btn-primary mt-2">
-                  <i className="bi bi-plus-lg me-2"></i>Tambah Rute Gunung Baru
-                </Link>
+                {selectedMountainId || selectedRouteId ? (
+                  <>
+                    <p className="text-muted">Tidak ada rute gunung yang sesuai dengan filter yang dipilih.</p>
+                    <button className="btn btn-outline-primary mt-2" onClick={clearFilters}>
+                      Reset Filter
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <p className="text-muted">Mulai Dengan Menambah Rute Gunung</p>
+                    <Link to="/dashboard/mountain-routes/create" className="btn btn-primary mt-2">
+                      <i className="bi bi-plus-lg me-2"></i>Tambah Rute Gunung Baru
+                    </Link>
+                  </>
+                )}
               </div>
             ) : (
               <>
@@ -134,12 +261,25 @@ const MountainRoutesManagement = () => {
                       {mountainRoutes.map((mountainRoute, index) => (
                         <tr key={mountainRoute.id}>
                           <td>{(currentPage - 1) * 10 + index + 1}</td>
-                          <td>{mountainRoute.mountain?.name || "N/A"}</td>
-                          <td>{mountainRoute.route?.routeName || "N/A"}</td>
                           <td>
-                            <span className={`badge ${mountainRoute.isActive ? "bg-success" : "bg-danger"}`}>
-                              {mountainRoute.isActive ? "Active" : "Inactive"}
-                            </span>
+                            {mountainRoute.mountainId ? (
+                              mountains.find((m) => m.id === mountainRoute.mountainId)?.name || mountainRoute.mountainId
+                            ) : (
+                              <span className="text-muted">N/A</span>
+                            )}
+                          </td>
+                          <td>
+                            {mountainRoute.routeName ||
+                              routes.find((r) => r.id === mountainRoute.routeId)?.routeName || (
+                                <span className="text-muted">N/A</span>
+                              )}
+                          </td>
+                          <td>
+                            {mountainRoute.mountainId && mountainRoute.routeId ? (
+                              <span className="badge bg-success">Active</span>
+                            ) : (
+                              <span className="badge bg-danger">Inactive</span>
+                            )}
                           </td>
                           <td>
                             <div className="btn-group">

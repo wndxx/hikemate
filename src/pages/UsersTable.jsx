@@ -112,8 +112,6 @@ const UsersTable = () => {
     setUserToDelete(null)
   }
 
-  
-
   const confirmDeleteUser = async () => {
     setIsLoading(true)
     if (userToDelete) {
@@ -177,12 +175,11 @@ const UsersTable = () => {
                 filteredHikers.map((hiker, index) => (
                   <tr key={hiker.id}>
                     <td>{index + 1 + (pagination.page - 1) * 10}</td>
-                    <td>{hiker.name}</td>
+                    <td>{hiker.username}</td>
                     <td>{hiker.email}</td>
-                    <td>{hiker.phoneNumber}</td>
-                    <td>{formatDate(hiker.createdAt)}</td>
+                    <td>{hiker.phone || "N/A"}</td>
+                    <td>{formatDate(hiker.created_at || new Date().toISOString())}</td>
                     <td>
-                      
                       <button className="btn btn-danger btn-sm me-2" onClick={() => handleDeleteUser(hiker)}>
                         <i className="bi bi-trash"></i>
                       </button>
@@ -253,7 +250,6 @@ const UsersTable = () => {
           </div>
         </div>
       )}
-
 
       {/* Modal Delete */}
       {showDeleteModal && userToDelete && (

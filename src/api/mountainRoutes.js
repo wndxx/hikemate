@@ -1,8 +1,4 @@
-import axios from "axios"
-import { getToken } from "../utils/auth"
-import { logApiError, createErrorResponse } from "../utils/apiUtils"
-
-const API_URL = "http://10.10.103.80:8080/api/v1"
+import api from "./axiosInstance"
 
 // Get all mountain routes with pagination and filtering
 export const getAllMountainRoutes = async (
@@ -14,70 +10,62 @@ export const getAllMountainRoutes = async (
   routeId = null,
 ) => {
   try {
-    const token = getToken()
+    // For json-server, we need to use _start, _limit, _sort, _order
+    const _start = (page - 1) * size
+    const _limit = size
 
     // Build query parameters
     const params = {
-      page,
-      size,
-      direction,
-      sort,
+      _start,
+      _limit,
+      _sort: sort,
+      _order: direction,
     }
 
     // Add optional filters if provided
     if (mountainId) params.mountainId = mountainId
     if (routeId) params.routeId = routeId
 
-    const response = await axios.get(`${API_URL}/mountain-routes`, {
-      params,
-      headers: {
-        Authorization: `Bearer ${token}`,
+    const response = await api.get("/mountain-routes", { params })
+
+    // Get total count from headers
+    const totalCount = Number.parseInt(response.headers["x-total-count"] || "0", 10)
+
+    return {
+      success: true,
+      mountainRoutes: response.data || [],
+      pagination: {
+        page,
+        totalPages: Math.ceil(totalCount / size),
+        totalElements: totalCount,
+        hasNext: page * size < totalCount,
+        hasPrevious: page > 1,
       },
-    })
-
-    console.log("Mountain Routes API response:", response.data)
-
-    if (response.data.status === 200) {
-      return {
-        success: true,
-        mountainRoutes: response.data.data,
-        pagination: response.data.paging,
-      }
-    } else {
-      return createErrorResponse(response.data.message || "Failed to fetch mountain routes")
     }
   } catch (error) {
-    logApiError("fetching mountain routes", error)
-    return createErrorResponse(error.response?.data?.message || "Failed to fetch mountain routes", error)
+    console.error("Error fetching mountain routes:", error)
+    return {
+      success: false,
+      message: error.message || "Failed to fetch mountain routes",
+      error,
+    }
   }
 }
 
 // Get mountain route by ID
 export const getMountainRouteById = async (id) => {
   try {
-    const token = getToken()
-    const response = await axios.get(`${API_URL}/mountain-routes/${id}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
+    const response = await api.get(`/mountain-routes/${id}`)
 
-    if (response.data.status === 200) {
-      return {
-        success: true,
-        mountainRoute: response.data.data,
-      }
-    } else {
-      return {
-        success: false,
-        message: response.data.message || "Failed to fetch mountain route",
-      }
+    return {
+      success: true,
+      mountainRoute: response.data,
     }
   } catch (error) {
     console.error("Error fetching mountain route:", error)
     return {
       success: false,
-      message: error.response?.data?.message || "Failed to fetch mountain route",
+      message: error.message || "Failed to fetch mountain route",
     }
   }
 }
@@ -85,34 +73,19 @@ export const getMountainRouteById = async (id) => {
 // Create new mountain route
 export const createMountainRoute = async (mountainRouteData) => {
   try {
-    const token = getToken()
-    const response = await axios.post(`${API_URL}/mountain-routes`, mountainRouteData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    })
+    const response = await api.post("/mountain-routes", mountainRouteData)
 
-    console.log("Mountain Route creation response:", response.data)
-
-    if (response.data.status === 201) {
-      return {
-        success: true,
-        message: "Mountain Route created successfully!",
-        mountainRoute: response.data.data,
-      }
-    } else {
-      return {
-        success: false,
-        message: response.data.message || "Failed to create mountain route",
-      }
+    return {
+      success: true,
+      message: "Mountain Route created successfully!",
+      mountainRoute: response.data,
     }
   } catch (error) {
     console.error("Error creating mountain route:", error)
     return {
       success: false,
-      message: error.response?.data?.message || "Failed to create mountain route",
-      error: error.response?.data || error.message,
+      message: error.message || "Failed to create mountain route",
+      error: error,
     }
   }
 }
@@ -120,30 +93,17 @@ export const createMountainRoute = async (mountainRouteData) => {
 // Delete mountain route
 export const deleteMountainRoute = async (id) => {
   try {
-    const token = getToken()
-    const response = await axios.delete(`${API_URL}/mountain-routes/${id}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
+    await api.delete(`/mountain-routes/${id}`)
 
-    if (response.status === 204 || (response.data && response.data.status === 200)) {
-      return {
-        success: true,
-        message: "Mountain Route deleted successfully!",
-      }
-    } else {
-      return {
-        success: false,
-        message: response.data?.message || "Failed to delete mountain route",
-      }
+    return {
+      success: true,
+      message: "Mountain Route deleted successfully!",
     }
   } catch (error) {
     console.error("Error deleting mountain route:", error)
     return {
       success: false,
-      message: error.response?.data?.message || "Failed to delete mountain route",
+      message: error.message || "Failed to delete mountain route",
     }
   }
 }
-

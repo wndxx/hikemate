@@ -1,104 +1,105 @@
-import api from "./axiosInstance";
+import api from "./axiosInstance"
 
 // Get all rangers with pagination
 export const getAllRangers = async (page = 1, size = 10, direction = "asc", sortBy = "id") => {
   try {
-    const response = await api.get(`/rangers`, {
-      params: { page, size, direction, sortBy },
-    });
+    // Calculate pagination parameters for json-server
+    const _start = (page - 1) * size
+    const _limit = size
+    const _sort = sortBy
+    const _order = direction
 
-    if (response.data.status === 200) {
-      return {
-        success: true,
-        rangers: response.data.data,
-        pagination: response.data.paging,
-      };
-    } else {
-      return {
-        success: false,
-        message: response.data.message || "Failed to fetch rangers",
-      };
+    const response = await api.get("/rangers", {
+      params: {
+        _start,
+        _limit,
+        _sort,
+        _order,
+      },
+    })
+
+    // Get total count from headers
+    const totalCount = Number.parseInt(response.headers["x-total-count"] || "0", 10)
+
+    return {
+      success: true,
+      rangers: response.data,
+      pagination: {
+        page,
+        totalPages: Math.ceil(totalCount / size),
+        totalElements: totalCount,
+        hasNext: page * size < totalCount,
+        hasPrevious: page > 1,
+      },
     }
   } catch (error) {
-    console.error("Error fetching rangers:", error);
+    console.error("Error fetching rangers:", error)
     return {
       success: false,
-      message: error.response?.data?.message || "Failed to fetch rangers",
-    };
+      message: error.message || "Failed to fetch rangers",
+    }
   }
-};
+}
 
 // Get ranger by ID
 export const getRangerById = async (id) => {
   try {
-    const response = await api.get(`/rangers/${id}`);
+    const response = await api.get(`/rangers/${id}`)
 
-    if (response.data.status === 200) {
-      return {
-        success: true,
-        ranger: response.data.data,
-      };
-    } else {
-      return {
-        success: false,
-        message: response.data.message || "Failed to fetch ranger details",
-      };
+    return {
+      success: true,
+      ranger: response.data,
     }
   } catch (error) {
-    console.error(`Error fetching ranger with ID ${id}:`, error);
+    console.error(`Error fetching ranger with ID ${id}:`, error)
     return {
       success: false,
-      message: error.response?.data?.message || "Failed to fetch ranger details",
-    };
+      message: error.message || "Failed to fetch ranger details",
+    }
   }
-};
+}
 
 // Get ranger by mountain ID
 export const getRangerByMountainId = async (mountainId) => {
   try {
-    const response = await api.get(`/rangers/ranger-mountain/${mountainId}`);
+    const response = await api.get("/rangers", {
+      params: { mountain_id: mountainId },
+    })
 
-    if (response.data.status === 200) {
+    if (response.data && response.data.length > 0) {
       return {
         success: true,
-        ranger: response.data.data, // This directly returns the ranger object
-      };
+        ranger: response.data[0], // Return the first ranger for this mountain
+      }
     } else {
       return {
         success: false,
-        message: response.data.message || "Failed to fetch ranger for this mountain",
-      };
+        message: "No ranger found for this mountain",
+      }
     }
   } catch (error) {
-    console.error(`Error fetching ranger for mountain ID ${mountainId}:`, error);
+    console.error(`Error fetching ranger for mountain ID ${mountainId}:`, error)
     return {
       success: false,
-      message: error.response?.data?.message || "Failed to fetch ranger for this mountain",
-    };
+      message: error.message || "Failed to fetch ranger for this mountain",
+    }
   }
-};
+}
 
 // Delete ranger by ID
 export const deleteRanger = async (id) => {
   try {
-    const response = await api.delete(`/rangers/${id}`);
+    await api.delete(`/rangers/${id}`)
 
-    if (response.data.status === 200) {
-      return {
-        success: true,
-        message: response.data.message || "Ranger deleted successfully",
-      };
-    } else {
-      return {
-        success: false,
-        message: response.data.message || "Failed to delete ranger",
-      };
+    return {
+      success: true,
+      message: "Ranger deleted successfully",
     }
   } catch (error) {
-    console.error(`Error deleting ranger with ID ${id}:`, error);
+    console.error(`Error deleting ranger with ID ${id}:`, error)
     return {
       success: false,
-      message: error.response?.data?.message || "Failed to delete ranger",
-    };
+      message: error.message || "Failed to delete ranger",
+    }
   }
-};
+}

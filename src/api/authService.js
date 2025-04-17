@@ -1,77 +1,121 @@
-// Direct API call for login - alternative approach
-export const loginDirectly = async (email, password) => {
+import api from "./axiosInstance"
+
+// Login function
+export const login = async (credentials) => {
   try {
-    // Try with a direct fetch call to rule out axios issues
-    const response = await fetch("http://10.10.103.80:8080/api/v1/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
+    // For json-server, we need to get users and check credentials manually
+    const response = await api.get("/users", {
+      params: {
+        email: credentials.email,
       },
-      body: JSON.stringify({ email, password }),
-    });
+    })
 
-    const data = await response.json();
-    console.log("Direct login response:", data);
+    if (response.data && response.data.length > 0) {
+      const user = response.data[0]
 
-    if (data.status === 200) {
-      return {
-        success: true,
-        userData: {
-          id: data.data.userAccountId,
-          loggedInId: data.data.userLoggedInId,
-          name: data.data.name,
-          email: data.data.name,
-          role: data.data.role,
-        },
-        token: data.data.token,
-      };
-    } else {
-      return {
-        success: false,
-        message: data.message || "Login failed",
-      };
+      // In a real app, you would hash the password and compare
+      // For this demo, we'll just check if the passwords match
+      if (user.password === credentials.password) {
+        // Create a token (in a real app, this would be a JWT)
+        const token = `dummy-token-${Date.now()}`
+
+        return {
+          success: true,
+          user: {
+            id: user.id,
+            username: user.username,
+            email: user.email,
+            role: user.role || "user",
+            loggedInId: user.id, // For compatibility with existing code
+          },
+          token,
+        }
+      }
     }
-  } catch (error) {
-    console.error("Direct login error:", error);
+
     return {
       success: false,
-      message: error.message || "Server error",
-    };
-  }
-};
-
-// Direct API call for registration - alternative approach
-export const registerDirectly = async (name, phone, email, password) => {
-  try {
-    const response = await fetch("http://10.10.103.80:8080/api/v1/auth/register", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({ name, phone, email, password }),
-    });
-
-    const data = await response.json();
-    console.log("Direct register response:", data);
-
-    if (data.status === 201) {
-      return {
-        success: true,
-        message: data.message,
-        userId: data.data.userId,
-        roles: data.data.roles,
-      };
-    } else {
-      return {
-        success: false,
-        message: data.message || "Registration failed",
-      };
+      message: "Invalid email or password",
     }
   } catch (error) {
-    console.error("Direct register error:", error);
+    console.error("Login error:", error)
     return {
       success: false,
-      message: error.message || "Server error",
-    };
+      message: error.message || "Login failed",
+    }
   }
-};
+}
+
+// Register function
+export const register = async (userData) => {
+  try {
+    // Check if user with this email already exists
+    const checkResponse = await api.get("/users", {
+      params: {
+        email: userData.email,
+      },
+    })
+
+    if (checkResponse.data && checkResponse.data.length > 0) {
+      return {
+        success: false,
+        message: "Email already in use",
+      }
+    }
+
+    // Create new user
+    const response = await api.post("/users", {
+      ...userData,
+      id: Date.now().toString(), // Generate a unique ID
+      role: "user", // Default role
+    })
+
+    return {
+      success: true,
+      user: response.data,
+      message: "Registration successful",
+    }
+  } catch (error) {
+    console.error("Registration error:", error)
+    return {
+      success: false,
+      message: error.message || "Registration failed",
+    }
+  }
+}
+
+// Logout function (client-side only)
+export const logout = () => {
+  // Clear local storage
+  localStorage.removeItem("token")
+  localStorage.removeItem("user")
+
+  return {
+    success: true,
+    message: "Logout successful",
+  }
+}
+
+// Check if user is authenticated
+export const checkAuth = () => {
+  const token = localStorage.getItem("token")
+  const userStr = localStorage.getItem("user")
+
+  if (token && userStr) {
+    try {
+      const user = JSON.parse(userStr)
+      return {
+        success: true,
+        user,
+        token,
+      }
+    } catch (error) {
+      console.error("Error parsing user data:", error)
+    }
+  }
+
+  return {
+    success: false,
+    message: "Not authenticated",
+  }
+}

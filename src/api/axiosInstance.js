@@ -1,25 +1,20 @@
 import axios from "axios"
+import { getToken } from "../utils/auth"
+import API_CONFIG from "./config"
 
-const API_BASE_URL = "http://10.10.103.80:8080/api/v1" // Updated base URL
-
+// Create axios instance with base configuration
 const api = axios.create({
-  baseURL: API_BASE_URL,
-  headers: {
-    "Content-Type": "application/json",
-  },
-  // Increase timeout to prevent timeout errors for large file uploads
-  timeout: 30000, // 30 seconds
+  baseURL: API_CONFIG.baseURL,
+  timeout: API_CONFIG.timeout,
+  headers: API_CONFIG.headers,
 })
 
-// Improve the request interceptor to better handle authentication
+// Add request interceptor to add auth token to requests
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem("token")
+    const token = getToken()
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
-      console.log("Adding auth token to request:", config.url)
-    } else {
-      console.warn("No auth token found for request:", config.url)
     }
 
     // For multipart/form-data requests, let axios set the content-type with boundary
@@ -29,15 +24,15 @@ api.interceptors.request.use(
     }
 
     // Log the full URL being requested for debugging
-    console.log("Full request URL:", `${config.baseURL}${config.url}`)
+    //console.log("Full request URL:", `${config.baseURL}${config.url}`)
 
     // Log the request for debugging
-    console.log("API Request:", {
+    /*console.log("API Request:", {
       url: config.url,
       method: config.method,
       data: config.data instanceof FormData ? "FormData (not shown)" : config.data,
       headers: { ...config.headers, Authorization: config.headers.Authorization ? "Bearer [TOKEN]" : undefined },
-    })
+    })*/
 
     return config
   },
@@ -47,20 +42,21 @@ api.interceptors.request.use(
   },
 )
 
-// Update the response interceptor to better handle 404 errors
+// Add response interceptor for error handling
 api.interceptors.response.use(
   (response) => {
     // Log successful response
-    console.log("API Response:", {
+    /*console.log("API Response:", {
       url: response.config.url,
       status: response.status,
       data: response.data,
-    })
+    })*/
     return response
   },
   (error) => {
     // Enhanced error logging
-    console.error("API Error Response:", {
+    console.error("API Error:", error)
+    /*console.error("API Error Response:", {
       url: error.config?.url,
       method: error.config?.method,
       message: error.message,
@@ -93,7 +89,7 @@ api.interceptors.response.use(
         method: error.config.method,
         data: error.config.data,
       })
-    }
+    }*/
 
     return Promise.reject(error)
   },
@@ -103,7 +99,7 @@ api.interceptors.response.use(
 export const checkApiAvailability = async () => {
   try {
     // Try to make a simple request to check if the API is available
-    const response = await axios.get(`${API_BASE_URL}/health`, { timeout: 5000 })
+    const response = await axios.get(`${API_CONFIG.baseURL}/health`, { timeout: 5000 })
     return response.status === 200
   } catch (error) {
     console.error("API availability check failed:", error)

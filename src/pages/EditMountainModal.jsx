@@ -25,7 +25,6 @@ const EditMountainModal = ({ mountainId, onClose, onSuccess }) => {
     toilet: true,
     quotaLimit: 10,
     water: "",
-    mountainRoutes: [],
   })
 
   // File upload states
@@ -55,7 +54,6 @@ const EditMountainModal = ({ mountainId, onClose, onSuccess }) => {
             toilet: mountain.toilet,
             quotaLimit: mountain.quotaLimit,
             water: mountain.water || "",
-            mountainRoutes: mountain.mountainRoutes || [],
           })
 
           // Set preview images
@@ -100,6 +98,7 @@ const EditMountainModal = ({ mountainId, onClose, onSuccess }) => {
       ...prev,
       [name]: type === "checkbox" ? checked : name === "price" || name === "quotaLimit" ? Number(value) : value,
     }))
+    console.log("handleInputChange >> data:", formData);
   }
 
   // Handle route selection
@@ -417,46 +416,6 @@ const EditMountainModal = ({ mountainId, onClose, onSuccess }) => {
                         </div>
                       </div>
 
-                      {/* Routes */}
-                      <div className="card mb-4">
-                        <div className="card-header bg-light">
-                          <h5 className="mb-0">Mountain Routes</h5>
-                        </div>
-                        <div className="card-body">
-                          {isLoadingRoutes ? (
-                            <div className="text-center py-3">
-                              <div className="spinner-border spinner-border-sm text-primary" role="status">
-                                <span className="visually-hidden">Loading...</span>
-                              </div>
-                              <p className="mb-0 mt-2">Loading routes...</p>
-                            </div>
-                          ) : routes.length > 0 ? (
-                            <div>
-                              {routes.map((route) => (
-                                <div className="form-check mb-2" key={route.id}>
-                                  <input
-                                    className="form-check-input"
-                                    type="checkbox"
-                                    id={`route-${route.id}`}
-                                    checked={formData.mountainRoutes.some(
-                                      (r) => r.routeId === route.id || r.id === route.id,
-                                    )}
-                                    onChange={(e) => handleRouteChange(e, route.id)}
-                                  />
-                                  <label className="form-check-label" htmlFor={`route-${route.id}`}>
-                                    {route.routeName}
-                                  </label>
-                                </div>
-                              ))}
-                            </div>
-                          ) : (
-                            <div className="alert alert-info mb-0">
-                              <i className="bi bi-info-circle me-2"></i>
-                              No routes available.
-                            </div>
-                          )}
-                        </div>
-                      </div>
                     </div>
                   </div>
 

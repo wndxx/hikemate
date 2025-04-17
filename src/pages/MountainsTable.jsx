@@ -263,13 +263,6 @@ const [showCreateModal, setShowCreateModal] = useState(false)
                         <i className="bi bi-eye"></i>
                       </button>
                       <button
-                        className="btn btn-warning btn-sm me-2"
-                        onClick={() => handleEditMountain(mountain)}
-                        title="Edit"
-                      >
-                        <i className="bi bi-pencil"></i>
-                      </button>
-                      <button
                         className="btn btn-danger btn-sm"
                         onClick={() => handleDeleteMountain(mountain)}
                         title="Delete"

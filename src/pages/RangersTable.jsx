@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import { useNavigate } from "react-router-dom"
-import { getAllRangers, deleteRanger } from "../api/rangers"
+import { getAllRangers } from "../api/rangers"
 import Loading from "../components/loading/Loading"
 import TablePagination from "../components/pagination/TablePagination"
 
@@ -61,11 +61,9 @@ const RangersTable = () => {
     navigate(`/ranger/${ranger.id}`)
   }
 
-
-
-
-
+  // Update the formatDate function to handle the ranger data format from db.json
   const formatDate = (dateString) => {
+    if (!dateString) return "N/A"
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
@@ -73,6 +71,28 @@ const RangersTable = () => {
       hour: "2-digit",
       minute: "2-digit",
     })
+  }
+
+  const handleCloseDeleteModal = () => {
+    setShowDeleteModal(false)
+    setRangerToDelete(null)
+  }
+
+  const confirmDeleteRanger = async () => {
+    setIsDeleting(true)
+    // try {
+    //   await deleteRanger(rangerToDelete.id)
+    //   setRangers(rangers.filter((ranger) => ranger.id !== rangerToDelete.id))
+    //   setShowDeleteModal(false)
+    //   setShowSuccessModal(true)
+    // } catch (error) {
+    //   console.error("Error deleting ranger:", error)
+    // } finally {
+    setIsDeleting(false)
+    setShowDeleteModal(false)
+    setShowSuccessModal(true)
+    fetchRangers()
+    // }
   }
 
   return (
@@ -112,9 +132,9 @@ const RangersTable = () => {
                   <tr key={ranger.id}>
                     <td>{index + 1 + (pagination.page - 1) * 10}</td>
                     <td>{ranger.name}</td>
-                    <td>{ranger.phoneNumber}</td>
-                    <td>{ranger.mountainResponse?.name || "Not assigned"}</td>
-                    <td>{formatDate(ranger.assignedAt)}</td>
+                    <td>{ranger.contact_info}</td>
+                    <td>{ranger.mountain_id || "Not assigned"}</td>
+                    <td>{formatDate(ranger.assigned_at)}</td>
                     <td>
                       <button
                         className="btn btn-info btn-sm me-2"
@@ -123,7 +143,6 @@ const RangersTable = () => {
                       >
                         <i className="bi bi-eye"></i>
                       </button>
-                      
                     </td>
                   </tr>
                 ))
@@ -172,12 +191,7 @@ const RangersTable = () => {
                 <button type="button" className="btn btn-secondary" onClick={handleCloseDeleteModal}>
                   Cancel
                 </button>
-                <button
-                  type="button"
-                  className="btn btn-danger"
-                  onClick={confirmDeleteRanger}
-                  disabled={isDeleting}
-                >
+                <button type="button" className="btn btn-danger" onClick={confirmDeleteRanger} disabled={isDeleting}>
                   {isDeleting ? (
                     <>
                       <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>

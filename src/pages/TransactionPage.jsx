@@ -398,8 +398,8 @@ const TransactionPage = () => {
                         required
                       >
                         <option value="">Select a route</option>
-                        <option value="90dce956-796e-49ad-96f7-081d039fcc06">Jalur Utama</option>
-                        <option value="d359a1bb-ea82-4d6c-9453-f8aee9bc5358">Jalur Alternatif</option>
+                        <option value="c95ddad6-e624-4581-b53b-61bd86923d2c">Jalur Utama</option>
+                        <option value="28f80ad3-1d7c-4142-8cbe-f19e6a97542a">Jalur Alternatif</option>
                       </select>
                     </div>
                   </div>
@@ -445,9 +445,9 @@ const TransactionPage = () => {
                 <div className="d-flex justify-content-between mb-3">
                   <span>Route:</span>
                   <span>
-                    {formData.routeId === "90dce956-796e-49ad-96f7-081d039fcc06"
+                    {formData.routeId === "c95ddad6-e624-4581-b53b-61bd86923d2c"
                       ? "Jalur Utama"
-                      : formData.routeId === "d359a1bb-ea82-4d6c-9453-f8aee9bc5358"
+                      : formData.routeId === "28f80ad3-1d7c-4142-8cbe-f19e6a97542a"
                         ? "Jalur Alternatif"
                         : "Unknown Route"}
                   </span>
@@ -501,9 +501,9 @@ const TransactionPage = () => {
                     )}
                     <p className="mb-1">
                       <strong>Route:</strong>{" "}
-                      {formData.routeId === "3d8d76c2-27f5-4c13-bc06-3b818d1799aa"
+                      {formData.routeId === "c95ddad6-e624-4581-b53b-61bd86923d2c"
                         ? "Jalur Utama"
-                        : formData.routeId === "d359a1bb-ea82-4d6c-9453-f8aee9bc5358"
+                        : formData.routeId === "28f80ad3-1d7c-4142-8cbe-f19e6a97542a"
                           ? "Jalur Alternatif"
                           : "Unknown Route"}
                     </p>

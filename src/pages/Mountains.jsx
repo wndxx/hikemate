@@ -6,7 +6,7 @@ import { getAllMountains } from "../api/mountains"
 
 const Mountains = () => {
   const [searchTerm, setSearchTerm] = useState("")
-  const [statusFilter, setStatusFilter] = useState("")
+  const [difficultyFilter, setDifficultyFilter] = useState("")
   const [mountainsData, setMountainsData] = useState([])
   const [isLoading, setIsLoading] = useState(true)
   const [isSearching, setIsSearching] = useState(false)
@@ -22,7 +22,15 @@ const Mountains = () => {
     try {
       const result = await getAllMountains(page, 10, "asc", "id", name)
       if (result.success) {
-        setMountainsData(result.mountains)
+        // Transform data to match MountainCard expectations
+        const transformedData = result.mountains.map(mountain => ({
+          ...mountain,
+          mountainCoverUrl: mountain.image,
+          status: mountain.difficulty, // Use difficulty as status
+          isOpen: true // Default value
+        }))
+        
+        setMountainsData(transformedData)
         setPagination({
           currentPage: result.pagination.page,
           totalPages: result.pagination.totalPages,
@@ -59,18 +67,17 @@ const Mountains = () => {
     setIsSearching(true)
   }
 
-  const handleStatusChange = (e) => {
-    setStatusFilter(e.target.value)
+  const handleDifficultyChange = (e) => {
+    setDifficultyFilter(e.target.value)
   }
 
   const handlePageChange = (page) => {
     fetchMountains(page, searchTerm)
   }
 
-  // Filter mountains based on status if needed
-  // (Note: we're already filtering by name on the server)
+  // Filter mountains based on difficulty
   const filteredMountains = mountainsData.filter((mountain) => {
-    return statusFilter === "" || mountain.status === statusFilter
+    return difficultyFilter === "" || mountain.difficulty === difficultyFilter
   })
 
   return (
@@ -97,13 +104,15 @@ const Mountains = () => {
               </div>
 
               <div className="col-md-4">
-                <select value={statusFilter} onChange={handleStatusChange} className="form-select">
-                  <option value="">All Statuses</option>
-                  <option value="SAFE">Safe</option>
-                  <option value="OPEN">Open</option>
-                  <option value="WARNING">Warning</option>
-                  <option value="DANGEROUS">Dangerous</option>
-                  <option value="CLOSED">Closed</option>
+                <select 
+                  value={difficultyFilter} 
+                  onChange={handleDifficultyChange} 
+                  className="form-select"
+                >
+                  <option value="">All Difficulties</option>
+                  <option value="Extreme">Extreme</option>
+                  <option value="Hard">Hard</option>
+                  <option value="Moderate">Moderate</option>
                 </select>
               </div>
             </div>
@@ -172,4 +181,3 @@ const Mountains = () => {
 }
 
 export default Mountains
-

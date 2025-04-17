@@ -236,31 +236,26 @@ const TransactionsTable = () => {
           <tbody>
             {filteredTransactions.length > 0 ? (
               filteredTransactions.map((trx) => (
-                <tr key={trx.transactionId}>
-                  <td>{trx.transactionId.substring(0, 8)}...</td>
-                  <td>{trx.hiker?.name}</td>
-                  <td>Rp {trx.price?.toLocaleString()}</td>
-                  <td>{new Date(trx.transactionDate).toLocaleDateString()}</td>
+                <tr key={trx.id}>
+                  <td>{trx.id.substring(0, 8)}</td>
+                  <td>{trx.hiker_id}</td>
+                  <td>Rp {trx.total_amount?.toLocaleString()}</td>
+                  <td>{new Date(trx.transaction_date).toLocaleDateString()}</td>
                   <td>
                     <span
                       className={`badge ${
-                        trx.paymentStatus === "PAID"
+                        trx.status === "completed"
                           ? "bg-success"
-                          : trx.paymentStatus === "ORDERED"
+                          : trx.status === "pending"
                             ? "bg-warning"
                             : "bg-secondary"
                       }`}
                     >
-                      {trx.paymentStatus}
+                      {trx.status}
                     </span>
                   </td>
                   <td>
-                    <span className={`badge ${trx.isUp ? "bg-success" : "bg-secondary"} me-1`}>
-                      {trx.isUp ? "Up" : "Not Up"}
-                    </span>
-                    <span className={`badge ${trx.isDown ? "bg-info" : "bg-secondary"}`}>
-                      {trx.isDown ? "Down" : "Not Down"}
-                    </span>
+                    <span className={`badge bg-secondary me-1`}>Not Available</span>
                   </td>
                   <td>
                     <button className="btn btn-info btn-sm me-2" onClick={() => handleViewDetails(trx)}>

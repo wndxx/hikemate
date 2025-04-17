@@ -1,41 +1,22 @@
-import axios from "axios"
-import { getToken } from "../utils/auth"
-import { logApiError, createErrorResponse } from "../utils/apiUtils"
-
-const API_URL = "http://10.10.103.80:8080/api/v1"
+import api from "./axiosInstance"
 
 // Create a new transaction
 export const createTransaction = async (transactionData) => {
   try {
-    const token = getToken()
-    const response = await axios.post(`${API_URL}/transactions`, transactionData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    })
+    const response = await api.post("/transactions", transactionData)
 
-    console.log("Transaction creation response:", response.data)
-
-    if (response.data.status === 201) {
-      return {
-        success: true,
-        message: "Transaction created successfully!",
-        transaction: response.data.data,
-        paymentUrl: response.data.data.paymentUrl,
-      }
-    } else {
-      return {
-        success: false,
-        message: response.data.message || "Failed to create transaction",
-      }
+    return {
+      success: true,
+      message: "Transaction created successfully!",
+      transaction: response.data,
+      paymentUrl: "https://example.com/payment", // Dummy payment URL
     }
   } catch (error) {
     console.error("Error creating transaction:", error)
     return {
       success: false,
-      message: error.response?.data?.message || "Failed to create transaction",
-      error: error.response?.data || error.message,
+      message: error.message || "Failed to create transaction",
+      error: error,
     }
   }
 }
@@ -43,21 +24,13 @@ export const createTransaction = async (transactionData) => {
 // Get all transactions for current user
 export const getUserTransactions = async () => {
   try {
-    const token = getToken()
-
     // Get user ID from localStorage
     let hikerId = null
     try {
       const userStr = localStorage.getItem("user")
       if (userStr) {
         const userData = JSON.parse(userStr)
-
-        // IMPORTANT: Use loggedInId instead of id
-        // The user object contains both id and loggedInId, and loggedInId is the actual hiker ID
         hikerId = userData.loggedInId || userData.id
-
-        console.log("Retrieved hiker ID from localStorage:", hikerId)
-        console.log("Full user data:", userData)
       }
     } catch (e) {
       console.error("Error parsing user data from localStorage:", e)
@@ -71,147 +44,126 @@ export const getUserTransactions = async () => {
       }
     }
 
-    // Build query parameters - IMPORTANT: Do NOT include status parameter
-    const params = {
-      page: 1,
-      size: 10,
-      direction: "asc",
-      sort: "id",
-      hiker_id: hikerId,
-    }
-
-    console.log("Fetching transactions with params:", params)
-
-    // Make the API request
-    const response = await axios.get(`${API_URL}/transactions`, {
-      params,
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
+    // Fetch transactions for this user
+    const response = await api.get("/transactions", {
+      params: { hiker_id: hikerId },
     })
 
-    console.log("User transactions response:", response.data)
-
-    if (response.data.status === 200) {
-      return {
-        success: true,
-        transactions: response.data.data || [],
-        pagination: response.data.paging,
-      }
-    } else {
-      return createErrorResponse(response.data.message || "Failed to fetch transactions")
+    return {
+      success: true,
+      transactions: response.data || [],
+      pagination: {
+        page: 1,
+        totalPages: 1,
+        totalElements: response.data.length,
+      },
     }
   } catch (error) {
-    logApiError("fetching user transactions", error)
+    console.error("Error fetching user transactions:", error)
 
     // Special handling for 404 errors
     if (error.response && error.response.status === 404) {
-      console.warn(
-        "404 error when fetching transactions. This might be due to no transactions found or invalid hiker ID.",
-      )
       return {
-        success: true, // Return success with empty array instead of error
+        success: true,
         transactions: [],
         message: "No transactions found",
       }
     }
 
-    return createErrorResponse(error.response?.data?.message || "Failed to fetch transactions", error)
+    return {
+      success: false,
+      message: error.message || "Failed to fetch transactions",
+      error,
+    }
   }
 }
 
 // Get transaction by ID
 export const getTransactionById = async (id) => {
   try {
-    const token = getToken()
-    const response = await axios.get(`${API_URL}/transactions/${id}`, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    })
+    const response = await api.get(`/transactions/${id}`)
 
-    if (response.data.status === 200) {
-      return {
-        success: true,
-        transaction: response.data.data,
-      }
-    } else {
-      return {
-        success: false,
-        message: response.data.message || "Failed to fetch transaction",
-      }
+    return {
+      success: true,
+      transaction: response.data,
     }
   } catch (error) {
     console.error("Error fetching transaction:", error)
     return {
       success: false,
-      message: error.response?.data?.message || "Failed to fetch transaction",
+      message: error.message || "Failed to fetch transaction",
     }
   }
 }
 
-// Add the getAllTransactions function to the transactions.js file
 // Get all transactions with pagination
 export const getAllTransactions = async (page = 1, size = 10, direction = "asc", sort = "id") => {
   try {
-    const token = getToken()
-    const response = await axios.get(`${API_URL}/transactions`, {
+    // Calculate pagination parameters for json-server
+    const _start = (page - 1) * size
+    const _limit = size
+    const _sort = sort
+    const _order = direction
+
+    const response = await api.get("/transactions", {
       params: {
-        page,
-        size,
-        direction,
-        sort,
-      },
-      headers: {
-        Authorization: `Bearer ${token}`,
+        _start,
+        _limit,
+        _sort,
+        _order,
       },
     })
 
-    console.log("Transactions API response:", response.data)
+    // Get total count from headers
+    const totalCount = Number.parseInt(response.headers["x-total-count"] || "0", 10)
 
-    if (response.data.status === 200) {
-      return {
-        success: true,
-        transactions: response.data.data,
-        pagination: response.data.paging,
-      }
-    } else {
-      return createErrorResponse(response.data.message || "Failed to fetch transactions")
+    return {
+      success: true,
+      transactions: response.data,
+      pagination: {
+        page,
+        totalPages: Math.ceil(totalCount / size),
+        totalElements: totalCount,
+        hasNext: page * size < totalCount,
+        hasPrevious: page > 1,
+      },
     }
   } catch (error) {
-    logApiError("fetching transactions", error)
-    return createErrorResponse(error.response?.data?.message || "Failed to fetch transactions", error)
+    console.error("Error fetching transactions:", error)
+    return {
+      success: false,
+      message: error.message || "Failed to fetch transactions",
+      error,
+    }
   }
 }
 
-// Add the updateTransactionStatus function which is also used in TransactionsTable.jsx
+// Update transaction status
 export const updateTransactionStatus = async (id, statusData) => {
   try {
-    const token = getToken()
-    const response = await axios.patch(`${API_URL}/transactions/${id}/status`, statusData, {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    })
+    // First get the current transaction
+    const getResponse = await api.get(`/transactions/${id}`)
+    const transaction = getResponse.data
 
-    if (response.data.status === 200) {
-      return {
-        success: true,
-        message: "Transaction status updated successfully!",
-        transaction: response.data.data,
-      }
-    } else {
-      return {
-        success: false,
-        message: response.data.message || "Failed to update transaction status",
-      }
+    // Update with new status
+    const updatedTransaction = {
+      ...transaction,
+      ...statusData,
+    }
+
+    // Save the updated transaction
+    const response = await api.put(`/transactions/${id}`, updatedTransaction)
+
+    return {
+      success: true,
+      message: "Transaction status updated successfully!",
+      transaction: response.data,
     }
   } catch (error) {
     console.error("Error updating transaction status:", error)
     return {
       success: false,
-      message: error.response?.data?.message || "Failed to update transaction status",
+      message: error.message || "Failed to update transaction status",
     }
   }
 }

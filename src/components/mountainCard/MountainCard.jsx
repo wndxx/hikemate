@@ -4,7 +4,16 @@ import { useNavigate } from "react-router-dom"
 import Button from "../button/Button"
 
 const MountainCard = ({ mountain }) => {
-  const { id, name, mountainCoverUrl, location, status, price, description, isOpen } = mountain
+  const { 
+    id, 
+    name, 
+    mountainCoverUrl, 
+    location, 
+    status = "OPEN", // default value jika tidak ada
+    price, 
+    description, 
+    isOpen = true // default value jika tidak ada
+  } = mountain
 
   const navigate = useNavigate()
 
@@ -15,13 +24,15 @@ const MountainCard = ({ mountain }) => {
     WARNING: "warning",
     DANGEROUS: "danger",
     CLOSED: "dark",
+    Extreme: "danger", // tambahkan mapping untuk difficulty
+    Hard: "warning",
+    Moderate: "success"
   }
 
   const statusColor = statusColorMap[status] || "secondary"
 
   // Handler for image error
   const handleImageError = (e) => {
-    // Replace image with div showing "No Image Available"
     const imageContainer = e.target.parentElement
     imageContainer.innerHTML = `
       <div 
@@ -40,13 +51,11 @@ const MountainCard = ({ mountain }) => {
     `
   }
 
-  // Navigate to mountain detail page
   const handleViewDetails = (e) => {
-    e.stopPropagation() // Prevent event bubbling
-    navigate(`/mountain/${id}`) // Navigate to mountain detail page
+    e.stopPropagation()
+    navigate(`/mountain/${id}`)
   }
 
-  // Format price to IDR
   const formatPrice = (price) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
@@ -67,7 +76,7 @@ const MountainCard = ({ mountain }) => {
       <div className="position-relative">
         {mountainCoverUrl ? (
           <img
-            src={mountainCoverUrl || "/placeholder.svg"}
+            src={mountainCoverUrl}
             alt={name}
             className="card-img-top"
             style={{ height: "200px", objectFit: "cover" }}
@@ -88,7 +97,9 @@ const MountainCard = ({ mountain }) => {
             Tidak ada gambar tersedia
           </div>
         )}
-        <span className={`position-absolute top-0 end-0 m-2 badge bg-${statusColor}`}>{status}</span>
+        <span className={`position-absolute top-0 end-0 m-2 badge bg-${statusColor}`}>
+          {status}
+        </span>
 
         {!isOpen && (
           <div
@@ -126,4 +137,3 @@ const MountainCard = ({ mountain }) => {
 }
 
 export default MountainCard
-

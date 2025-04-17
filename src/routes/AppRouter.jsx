@@ -1,7 +1,7 @@
 import { Routes, Route } from "react-router-dom"
 import Home from "../pages/Home"
 import Login from "../pages/Login"
-import LoginAlternative from "../pages/LoginAlternative"
+// import LoginAlternative from "../pages/LoginAlternative"
 import Register from "../pages/Register"
 import Mountains from "../pages/Mountains"
 import Dashboard from "../pages/Dashboard"
@@ -30,7 +30,7 @@ const AppRouter = () => {
     <Routes>
       <Route path="/" element={<Home />} />
       <Route path="/login" element={<Login />} />
-      <Route path="/login-alt" element={<LoginAlternative />} />
+      {/* <Route path="/login-alt" element={<LoginAlternative />} /> */}
       <Route path="/register" element={<Register />} />
       <Route path="/mountains" element={<Mountains />} />
       <Route path="/transaction/:id" element={<TransactionPage />} />

@@ -21,18 +21,33 @@ const ViewMountain = () => {
     const fetchMountainData = async () => {
       setIsLoading(true);
       try {
-        // Fetch mountain data
         const result = await getMountainById(id);
         if (result.success) {
-          setMountain(result.mountain);
+          // Transform the data to match expected structure
+          const transformedMountain = {
+            ...result.mountain,
+            mountainCoverUrl: result.mountain.image,
+            status: result.mountain.difficulty,
+            isOpen: true, // Default value
+            toilet: false, // Default value
+            water: "Available at basecamp", // Default value
+            quotaLimit: 100, // Default value
+            mountainRoutes: [], // Empty array
+            baseCampImagesUrl: [result.mountain.image], // Use main image
+            createdAt: result.mountain.created_at,
+            updatedAt: result.mountain.created_at // Using created_at as updated_at
+          };
+          
+          setMountain(transformedMountain);
 
-          // Fetch ranger data for this mountain
-          const rangerResult = await getRangerByMountainId(id);
-          console.log("Ranger API response:", rangerResult); // Debug log
-          if (rangerResult.success && rangerResult.ranger) {
-            setRanger(rangerResult.ranger);
-          } else {
-            console.log("No ranger found for this mountain or error fetching ranger:", rangerResult.message);
+          // Fetch ranger data if available
+          try {
+            const rangerResult = await getRangerByMountainId(id);
+            if (rangerResult.success && rangerResult.ranger) {
+              setRanger(rangerResult.ranger);
+            }
+          } catch (rangerError) {
+            console.error("Error fetching ranger:", rangerError);
           }
         } else {
           setError(result.message || "Failed to fetch mountain details");
@@ -48,7 +63,6 @@ const ViewMountain = () => {
     fetchMountainData();
   }, [id]);
 
-  // Format date for display
   const formatDate = (dateString) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
@@ -57,7 +71,6 @@ const ViewMountain = () => {
     });
   };
 
-  // Format price to IDR
   const formatPrice = (price) => {
     return new Intl.NumberFormat("id-ID", {
       style: "currency",
@@ -68,26 +81,30 @@ const ViewMountain = () => {
 
   if (isLoading) {
     return (
-      <div className="container-fluid p-4">
-        <div className="text-center py-5">
-          <Loading />
-          <p className="mt-3">Loading mountain data...</p>
+      <Layout showFooter={false}>
+        <div className="container-fluid p-4">
+          <div className="text-center py-5">
+            <Loading />
+            <p className="mt-3">Loading mountain data...</p>
+          </div>
         </div>
-      </div>
+      </Layout>
     );
   }
 
   if (error || !mountain) {
     return (
-      <div className="container-fluid p-4">
-        <div className="alert alert-danger">
-          <i className="bi bi-exclamation-triangle-fill me-2"></i>
-          {error || "Mountain not found"}
+      <Layout showFooter={false}>
+        <div className="container-fluid p-4">
+          <div className="alert alert-danger">
+            <i className="bi bi-exclamation-triangle-fill me-2"></i>
+            {error || "Mountain not found"}
+          </div>
+          <button className="btn btn-secondary" onClick={() => navigate("/dashboard/mountains")}>
+            <i className="bi bi-arrow-left me-2"></i>Back to Mountains
+          </button>
         </div>
-        <button className="btn btn-secondary" onClick={() => navigate("/dashboard/mountains")}>
-          <i className="bi bi-arrow-left me-2"></i>Back to Mountains
-        </button>
-      </div>
+      </Layout>
     );
   }
 
@@ -112,35 +129,37 @@ const ViewMountain = () => {
               <div className="card-body p-0">
                 <div className="position-relative">
                   {mountain.mountainCoverUrl ? (
-                    <img src={mountain.mountainCoverUrl || "/placeholder.svg"} alt={mountain.name} className="img-fluid w-100" style={{ maxHeight: "400px", objectFit: "cover" }} />
+                    <img 
+                      src={mountain.mountainCoverUrl} 
+                      alt={mountain.name} 
+                      className="img-fluid w-100" 
+                      style={{ maxHeight: "400px", objectFit: "cover" }} 
+                    />
                   ) : (
                     <div className="bg-light d-flex align-items-center justify-content-center" style={{ height: "300px" }}>
                       <i className="bi bi-image text-muted display-1"></i>
                     </div>
                   )}
                   <div className="position-absolute top-0 end-0 m-3">
-                    <span className={`badge fs-6 bg-${mountain.status === "SAFE" ? "success" : mountain.status === "OPEN" ? "success" : mountain.status === "WARNING" ? "warning" : mountain.status === "DANGEROUS" ? "danger" : "secondary"}`}>
+                    <span className={`badge fs-6 bg-${mountain.status === "Extreme" ? "danger" : mountain.status === "Hard" ? "warning" : "success"}`}>
                       {mountain.status}
                     </span>
-                  </div>
-                  <div className="position-absolute top-0 start-0 m-3">
-                    <span className={`badge fs-6 ${mountain.isOpen ? "bg-success" : "bg-danger"}`}>{mountain.isOpen ? "Open" : "Closed"}</span>
                   </div>
                 </div>
 
                 <ul className="nav nav-tabs" role="tablist">
                   <li className="nav-item" role="presentation">
-                    <button className={`nav-link ${activeTab === "details" ? "active" : ""}`} onClick={() => setActiveTab("details")} type="button" role="tab">
+                    <button className={`nav-link ${activeTab === "details" ? "active" : ""}`} onClick={() => setActiveTab("details")}>
                       <i className="bi bi-info-circle me-2"></i>Details
                     </button>
                   </li>
                   <li className="nav-item" role="presentation">
-                    <button className={`nav-link ${activeTab === "routes" ? "active" : ""}`} onClick={() => setActiveTab("routes")} type="button" role="tab">
+                    <button className={`nav-link ${activeTab === "routes" ? "active" : ""}`} onClick={() => setActiveTab("routes")}>
                       <i className="bi bi-signpost-split me-2"></i>Routes
                     </button>
                   </li>
                   <li className="nav-item" role="presentation">
-                    <button className={`nav-link ${activeTab === "images" ? "active" : ""}`} onClick={() => setActiveTab("images")} type="button" role="tab">
+                    <button className={`nav-link ${activeTab === "images" ? "active" : ""}`} onClick={() => setActiveTab("images")}>
                       <i className="bi bi-images me-2"></i>Images
                     </button>
                   </li>
@@ -156,9 +175,7 @@ const ViewMountain = () => {
                           <table className="table table-borderless">
                             <tbody>
                               <tr>
-                                <th scope="row" style={{ width: "40%" }}>
-                                  Name
-                                </th>
+                                <th scope="row" style={{ width: "40%" }}>Name</th>
                                 <td>{mountain.name}</td>
                               </tr>
                               <tr>
@@ -166,20 +183,16 @@ const ViewMountain = () => {
                                 <td>{mountain.location}</td>
                               </tr>
                               <tr>
+                                <th scope="row">Elevation</th>
+                                <td>{mountain.elevation} meters</td>
+                              </tr>
+                              <tr>
                                 <th scope="row">Price</th>
                                 <td>{formatPrice(mountain.price)}</td>
                               </tr>
                               <tr>
-                                <th scope="row">Quota Limit</th>
-                                <td>{mountain.quotaLimit} hikers</td>
-                              </tr>
-                              <tr>
-                                <th scope="row">Toilet Available</th>
-                                <td>{mountain.toilet ? "Yes" : "No"}</td>
-                              </tr>
-                              <tr>
-                                <th scope="row">Water</th>
-                                <td>{mountain.water}</td>
+                                <th scope="row">Difficulty</th>
+                                <td>{mountain.difficulty}</td>
                               </tr>
                             </tbody>
                           </table>
@@ -189,18 +202,12 @@ const ViewMountain = () => {
                           <table className="table table-borderless">
                             <tbody>
                               <tr>
-                                <th scope="row" style={{ width: "40%" }}>
-                                  ID
-                                </th>
+                                <th scope="row" style={{ width: "40%" }}>ID</th>
                                 <td>{mountain.id}</td>
                               </tr>
                               <tr>
                                 <th scope="row">Created At</th>
                                 <td>{formatDate(mountain.createdAt)}</td>
-                              </tr>
-                              <tr>
-                                <th scope="row">Updated At</th>
-                                <td>{formatDate(mountain.updatedAt)}</td>
                               </tr>
                             </tbody>
                           </table>
@@ -215,62 +222,43 @@ const ViewMountain = () => {
                   {/* Routes Tab */}
                   {activeTab === "routes" && (
                     <div role="tabpanel">
-                      <h5 className="mb-3">Available Routes</h5>
-                      {mountain.mountainRoutes && mountain.mountainRoutes.length > 0 ? (
-                        <div className="list-group">
-                          {mountain.mountainRoutes.map((route, index) => (
-                            <div key={route.id || index} className="list-group-item list-group-item-action">
-                              <div className="d-flex w-100 justify-content-between">
-                                <h6 className="mb-1">{route.routeName || "Route Name Not Available"}</h6>
-                                <small className="text-muted">ID: {route.routeId || route.id}</small>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        <div className="alert alert-info">
-                          <i className="bi bi-info-circle me-2"></i>
-                          No routes have been defined for this mountain.
-                        </div>
-                      )}
+                      <h5 className="mb-3">Climbing Routes</h5>
+                      <div className="alert alert-info">
+                        <i className="bi bi-info-circle me-2"></i>
+                        Route information not available in demo data.
+                      </div>
                     </div>
                   )}
 
                   {/* Images Tab */}
                   {activeTab === "images" && (
                     <div role="tabpanel">
-                      <h5 className="mb-3">Basecamp Images</h5>
-                      {mountain.baseCampImagesUrl && mountain.baseCampImagesUrl.length > 0 ? (
-                        <div>
-                          <div className="row g-2 mb-3">
-                            {mountain.baseCampImagesUrl.map((imageUrl, index) => (
-                              <div className="col-md-3 col-6" key={index}>
-                                <img
-                                  src={imageUrl || "/placeholder.svg"}
-                                  alt={`Basecamp ${index + 1}`}
-                                  className={`img-thumbnail cursor-pointer ${activeImage === index ? "border-primary" : ""}`}
-                                  style={{
-                                    height: "100px",
-                                    width: "100%",
-                                    objectFit: "cover",
-                                    cursor: "pointer",
-                                    borderWidth: activeImage === index ? "3px" : "1px",
-                                  }}
-                                  onClick={() => setActiveImage(index)}
-                                />
-                              </div>
-                            ))}
-                          </div>
-                          <div className="mt-3">
-                            <img src={mountain.baseCampImagesUrl[activeImage] || "/placeholder.svg"} alt="Selected basecamp" className="img-fluid rounded" style={{ maxHeight: "400px", width: "100%", objectFit: "cover" }} />
-                          </div>
+                      <h5 className="mb-3">Mountain Images</h5>
+                      <div className="row g-2 mb-3">
+                        <div className="col-md-3 col-6">
+                          <img
+                            src={mountain.mountainCoverUrl}
+                            alt="Main view"
+                            className={`img-thumbnail cursor-pointer ${activeImage === 0 ? "border-primary" : ""}`}
+                            style={{
+                              height: "100px",
+                              width: "100%",
+                              objectFit: "cover",
+                              cursor: "pointer",
+                              borderWidth: activeImage === 0 ? "3px" : "1px",
+                            }}
+                            onClick={() => setActiveImage(0)}
+                          />
                         </div>
-                      ) : (
-                        <div className="alert alert-info">
-                          <i className="bi bi-info-circle me-2"></i>
-                          No basecamp images available for this mountain.
-                        </div>
-                      )}
+                      </div>
+                      <div className="mt-3">
+                        <img 
+                          src={mountain.mountainCoverUrl} 
+                          alt="Mountain view" 
+                          className="img-fluid rounded" 
+                          style={{ maxHeight: "400px", width: "100%", objectFit: "cover" }} 
+                        />
+                      </div>
                     </div>
                   )}
                 </div>
@@ -287,46 +275,37 @@ const ViewMountain = () => {
                 </h5>
               </div>
               <div className="card-body">
-                {ranger ? (
-                  <div>
-                    <div className="d-flex align-items-center mb-3">
-                      <div className="bg-light rounded-circle p-3 me-3">
-                        <i className="bi bi-person-fill fs-3"></i>
-                      </div>
-                      <div>
-                        <h5 className="mb-1">{ranger.name}</h5>
-                        <p className="text-muted mb-0">Assigned Ranger</p>
-                      </div>
-                    </div>
-                    <table className="table table-borderless">
-                      <tbody>
-                        <tr>
-                          <th scope="row" style={{ width: "40%" }}>
-                            Phone
-                          </th>
-                          <td>{ranger.phoneNumber}</td>
-                        </tr>
-                        {ranger.email && (
-                          <tr>
-                            <th scope="row">Email</th>
-                            <td>{ranger.email}</td>
-                          </tr>
-                        )}
-                        {ranger.assignedAt && (
-                          <tr>
-                            <th scope="row">Assigned At</th>
-                            <td>{formatDate(ranger.assignedAt)}</td>
-                          </tr>
-                        )}
-                      </tbody>
-                    </table>
-                  </div>
-                ) : (
-                  <div className="alert alert-warning">
-                    <i className="bi bi-exclamation-triangle me-2"></i>
-                    No ranger has been assigned to this mountain.
-                  </div>
-                )}
+                <div className="alert alert-info">
+                  <i className="bi bi-info-circle me-2"></i>
+                  Ranger information not available in demo data.
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Facts */}
+            <div className="card shadow-sm mb-4">
+              <div className="card-header bg-light">
+                <h5 className="mb-0">
+                  <i className="bi bi-lightbulb me-2"></i>Quick Facts
+                </h5>
+              </div>
+              <div className="card-body">
+                <ul className="list-group list-group-flush">
+                  <li className="list-group-item d-flex justify-content-between align-items-center">
+                    <span>Elevation</span>
+                    <span className="badge bg-primary rounded-pill">{mountain.elevation}m</span>
+                  </li>
+                  <li className="list-group-item d-flex justify-content-between align-items-center">
+                    <span>Difficulty</span>
+                    <span className={`badge rounded-pill bg-${mountain.difficulty === "Extreme" ? "danger" : mountain.difficulty === "Hard" ? "warning" : "success"}`}>
+                      {mountain.difficulty}
+                    </span>
+                  </li>
+                  <li className="list-group-item d-flex justify-content-between align-items-center">
+                    <span>Location</span>
+                    <span className="text-muted">{mountain.location}</span>
+                  </li>
+                </ul>
               </div>
             </div>
 
@@ -345,17 +324,6 @@ const ViewMountain = () => {
                   <Link to={`/mountain/${mountain.id}`} className="btn btn-outline-primary" target="_blank">
                     <i className="bi bi-eye me-2"></i>View Public Page
                   </Link>
-                  <button
-                    className="btn btn-outline-secondary"
-                    onClick={() => {
-                      // Toggle mountain status
-                      const newStatus = mountain.isOpen ? "CLOSED" : "OPEN";
-                      alert(`Mountain status would be changed to ${newStatus}. This feature is not implemented yet.`);
-                    }}
-                  >
-                    <i className={`bi ${mountain.isOpen ? "bi-lock" : "bi-unlock"} me-2`}></i>
-                    {mountain.isOpen ? "Close Mountain" : "Open Mountain"}
-                  </button>
                 </div>
               </div>
             </div>

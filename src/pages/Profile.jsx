@@ -6,7 +6,7 @@ import { useAuth } from "../context/AuthContext";
 import Layout from "../components/layout/Layout";
 import Loading from "../components/loading/Loading";
 import { getProfile, updateProfile } from "../api/profile";
-import { jwtDecode } from "jwt-decode";
+import jwtDecode from "jwt-decode";
 
 const Profile = () => {
   const { user, token } = useAuth();

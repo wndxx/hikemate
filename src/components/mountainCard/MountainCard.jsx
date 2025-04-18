@@ -7,31 +7,30 @@ const MountainCard = ({ mountain }) => {
   const { 
     id, 
     name, 
-    mountainCoverUrl, 
+    image: mountainCoverUrl, // Ubah dari mountainCoverUrl ke image (sesuai mock data)
     location, 
-    status = "OPEN", // default value jika tidak ada
+    difficulty: status = "OPEN", // Gunakan difficulty sebagai status default
     price, 
     description, 
-    isOpen = true // default value jika tidak ada
+    elevation // Tambahkan elevation dari mock data
   } = mountain
 
   const navigate = useNavigate()
 
-  // Map status to Bootstrap color classes
+  // Map status/difficulty to color classes
   const statusColorMap = {
     SAFE: "success",
     OPEN: "success",
     WARNING: "warning",
     DANGEROUS: "danger",
     CLOSED: "dark",
-    Extreme: "danger", // tambahkan mapping untuk difficulty
+    Extreme: "danger",
     Hard: "warning",
     Moderate: "success"
   }
 
   const statusColor = statusColorMap[status] || "secondary"
 
-  // Handler for image error
   const handleImageError = (e) => {
     const imageContainer = e.target.parentElement
     imageContainer.innerHTML = `
@@ -100,26 +99,22 @@ const MountainCard = ({ mountain }) => {
         <span className={`position-absolute top-0 end-0 m-2 badge bg-${statusColor}`}>
           {status}
         </span>
-
-        {!isOpen && (
-          <div
-            className="position-absolute top-0 start-0 w-100 h-100 d-flex justify-content-center align-items-center"
-            style={{ backgroundColor: "rgba(0,0,0,0.5)" }}
-          >
-            <span className="badge bg-danger fs-5 p-2">TUTUP</span>
-          </div>
-        )}
       </div>
 
       <div className="card-body d-flex flex-column">
         <h3 className="card-title h5">{name}</h3>
         <p className="card-text text-muted small mb-1">{location}</p>
         <p className="card-text small mb-2">
-          <strong>Status: </strong>
+          <strong>Tinggi: </strong>
+          {elevation} mdpl
+        </p>
+        <p className="card-text small mb-2">
+          <strong>Kesulitan: </strong>
           <span className={`text-${statusColor}`}>{status}</span>
         </p>
         <p className="card-text flex-grow-1">
-          {description && description.length > 100 ? `${description.substring(0, 100)}...` : description}
+          {description && description.length > 100 ? 
+            `${description.substring(0, 100)}...` : description}
         </p>
 
         <div className="d-flex justify-content-between align-items-center mt-3">

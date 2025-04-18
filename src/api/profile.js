@@ -1,5 +1,5 @@
 import api from "./axiosInstance";
-import { jwtDecode } from "jwt-decode";
+import jwtDecode from "jwt-decode";
 
 /**
  * Get user profile data

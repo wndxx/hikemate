@@ -1,93 +1,50 @@
 import api from "./axiosInstance";
-import { jwtDecode } from "jwt-decode";
-// import { useDispatch } from "react-redux";
-// import { loginSuccess } from "../redux/authSlice";
+import jwtDecode from "jwt-decode"; // <-- PERUBAHAN DI SINI
 
-// Login user
 export const loginUser = async (email, password) => {
   try {
-    const response = await api.post("/auth/login", {
-      email,
-      password,
-    });
+    const response = await api.post("/auth/login", { email, password });
+    const decoded = jwtDecode(response.data.data.token); // <-- Tetap sama penggunaannya
 
-    const userCredential = jwtDecode(response.data.data.token);
-    if (response.status === 200) {
-      return {
-        success: true,
-        userData: {
-          id: userCredential.userAccountId,
-          loggedInId: userCredential.userLoggedInId,
-          name: userCredential.name,
-          email: userCredential.email,
-          role: userCredential.roles,
-        },
-        token: response.data.data.token,
-      };
-    } else {
-      return {
-        success: false,
-        message: response.data.message || "Login failed",
-      };
-    }
+    return {
+      success: true,
+      userData: {
+        id: decoded.userAccountId,
+        loggedInId: decoded.userLoggedInId,
+        name: decoded.name,
+        email: decoded.email,
+        role: decoded.roles,
+      },
+      token: response.data.data.token
+    };
   } catch (error) {
-    console.error("Login error:", error);
     return {
       success: false,
-      message: error.response?.data?.message || "An error occurred. Please try again.",
-      status: error.response?.status || 500,
-      error: error.response?.data,
+      message: error.response?.data?.message || "Login failed",
+      status: error.response?.status
     };
   }
 };
 
-// Register user
 export const registerUser = async (name, phone, email, password) => {
   try {
-    // Make sure we're sending the exact format the server expects
-    var formData = new FormData();
-    const requestData = {
-      name: name,
-      phone: phone,
-      email: email,
-      password: password,
-    };
-    formData.append("hiker", JSON.stringify(requestData));
+    const formData = new FormData();
+    formData.append("hiker", JSON.stringify({ name, phone, email, password }));
 
-    console.log("Register request data:", requestData);
-    const headers = {
-      "Content-Type": 'Content-Type": "multipart/form-data',
-    };
-
-    const response = await api({
-      url: "/auth/register",
-      method: "post",
-      data: formData,
-      headers: headers,
+    const response = await api.post("/auth/register", formData, {
+      headers: { "Content-Type": "multipart/form-data" } // <-- Typo diperbaiki
     });
 
-    if (response.data.status === 201) {
-      return {
-        success: true,
-        message: response.data.message,
-        userId: response.data.data.userId,
-        roles: response.data.data.roles,
-      };
-    } else {
-      return {
-        success: false,
-        message: response.data.message || "Registration failed",
-      };
-    }
+    return {
+      success: response.data.status === 201,
+      message: response.data.message,
+      ...response.data.data
+    };
   } catch (error) {
-    console.error("Registration error:", error);
-
-    // Provide more detailed error information
     return {
       success: false,
-      message: error.response?.data?.message || error.message || "Server error",
-      status: error.response?.status,
-      error: error,
+      message: error.response?.data?.message || "Registration failed",
+      status: error.response?.status
     };
   }
 };

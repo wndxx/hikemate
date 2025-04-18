@@ -7,7 +7,7 @@ import Layout from "../components/layout/Layout"
 import Loading from "../components/loading/Loading"
 import { getMountainById } from "../api/mountains"
 import { createTransaction } from "../api/transactions"
-import { jwtDecode } from "jwt-decode"
+import jwtDecode from "jwt-decode"
 
 const TransactionPage = () => {
   const { id } = useParams() // Mountain ID from URL
